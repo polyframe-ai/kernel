@@ -33,7 +33,7 @@ fn bench_primitives(c: &mut Criterion) {
     let mut group = c.benchmark_group("primitives");
 
     group.bench_function("cube", |b| {
-        b.iter(|| Primitive::cube(black_box(Vector3::new(10.0, 10.0, 10.0))).to_mesh());
+        b.iter(|| Primitive::cube(black_box(Vector3::new(10.0, 10.0, 10.0)), true).to_mesh());
     });
 
     group.bench_function("sphere_32", |b| {
@@ -86,8 +86,8 @@ fn bench_render(c: &mut Criterion) {
 fn bench_boolean_ops(c: &mut Criterion) {
     let mut group = c.benchmark_group("boolean_ops");
 
-    let cube1 = Primitive::cube(Vector3::new(10.0, 10.0, 10.0)).to_mesh();
-    let cube2 = Primitive::cube(Vector3::new(8.0, 8.0, 8.0)).to_mesh();
+    let cube1 = Primitive::cube(Vector3::new(10.0, 10.0, 10.0), true).to_mesh();
+    let cube2 = Primitive::cube(Vector3::new(8.0, 8.0, 8.0), true).to_mesh();
 
     group.bench_function("union", |b| {
         b.iter(|| {

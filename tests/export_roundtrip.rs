@@ -28,7 +28,7 @@ fn test_roundtrip_stl_export() -> Result<()> {
 
     // Verify file exists and has content
     let metadata = std::fs::metadata(path)?;
-    assert!(metadata.len() > 0, "STL file is empty");
+    assert!(metadata.len() > 100, "STL file too small");
 
     println!("STL file size: {} bytes", metadata.len());
 
@@ -54,7 +54,7 @@ fn test_roundtrip_3mf_export() -> Result<()> {
 
     // Verify file exists and is a valid ZIP
     let file_content = std::fs::read(path)?;
-    assert!(file_content.len() > 0, "3MF file is empty");
+    assert!(!file_content.is_empty(), "3MF file is empty");
 
     // Check ZIP signature (PK)
     assert_eq!(&file_content[0..2], b"PK", "3MF file is not a valid ZIP");
@@ -83,7 +83,7 @@ fn test_roundtrip_glb_export() -> Result<()> {
 
     // Verify file exists and has GLB magic number
     let file_content = std::fs::read(path)?;
-    assert!(file_content.len() > 0, "GLB file is empty");
+    assert!(!file_content.is_empty(), "GLB file is empty");
 
     // Check GLB magic number
     assert_eq!(

@@ -560,7 +560,10 @@ fn analyze_command(input: &str, format: &str, verbose: bool) -> Result<()> {
             let json = serde_json::to_string_pretty(&stats)?;
             println!("{}", json);
         }
-        "text" | _ => {
+        "text" => {
+            stats.print();
+        }
+        _ => {
             stats.print();
         }
     }
