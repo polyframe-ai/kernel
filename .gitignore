@@ -19,7 +19,7 @@ Cargo.lock
 *.glb
 
 # Evaluation results (generated at runtime)
-evaluation/
+/evaluation/
 out_openscad.stl
 out_polyframe.stl
 test-outputs/
