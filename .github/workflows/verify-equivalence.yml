@@ -1,0 +1,191 @@
+name: Verify I/O Equivalence
+
+on:
+  schedule:
+    - cron: "0 3 * * *"   # Run nightly at 3 AM UTC
+  pull_request:
+    branches: [ main, develop ]
+  push:
+    branches: [ main ]
+  workflow_dispatch:      # Allow manual trigger
+
+jobs:
+  equivalence-test:
+    name: Compare with OpenSCAD
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Cache Rust dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Install OpenSCAD
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openscad xvfb
+          openscad --version
+
+      - name: Build Polyframe Kernel (release)
+        run: cargo build --release
+
+      - name: Run unit tests
+        run: cargo test --lib
+
+      - name: Run I/O equivalence tests
+        run: cargo test --test io_equivalence -- --nocapture
+
+      - name: Compare outputs - Cube
+        run: |
+          xvfb-run -a ./target/release/polyframe compare examples/primitives/cube.scad -v
+
+      - name: Compare outputs - Sphere
+        run: |
+          xvfb-run -a ./target/release/polyframe compare examples/primitives/sphere.scad -v
+
+      - name: Compare outputs - Cylinder
+        run: |
+          xvfb-run -a ./target/release/polyframe compare examples/primitives/cylinder.scad -v
+
+      - name: Compare outputs - Union
+        run: |
+          xvfb-run -a ./target/release/polyframe compare examples/operations/union.scad -v
+
+      - name: Compare outputs - Difference
+        run: |
+          xvfb-run -a ./target/release/polyframe compare examples/operations/difference.scad -v
+
+      - name: Compare outputs - Transform
+        run: |
+          xvfb-run -a ./target/release/polyframe compare examples/complex/transform.scad -v
+
+      - name: Batch compare all examples
+        run: |
+          xvfb-run -a ./target/release/polyframe compare \
+            examples/primitives/cube.scad \
+            examples/primitives/sphere.scad \
+            examples/primitives/cylinder.scad \
+            examples/operations/union.scad \
+            examples/complex/transform.scad \
+            -v
+
+      - name: Run Evaluation Harness (Folder)
+        run: |
+          xvfb-run -a ./target/release/polyframe --verbose eval --dataset examples/ --out evaluation/results
+
+      - name: Run JSON Exercise Suite (001-040)
+        run: |
+          xvfb-run -a ./target/release/polyframe --verbose eval --dataset evaluation/assets/polyframe_exercises_001_040.json --out evaluation/results_001_040
+
+      - name: Run JSON Exercise Suite (041-100)
+        run: |
+          xvfb-run -a ./target/release/polyframe --verbose eval --dataset evaluation/assets/polyframe_exercises_041_100.json --out evaluation/results_041_100
+
+      - name: Upload Evaluation Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evaluation-reports
+          path: |
+            evaluation/results/report.md
+            evaluation/results/latest.json
+            evaluation/results_001_040/report.md
+            evaluation/results_001_040/latest.json
+            evaluation/results_041_100/report.md
+            evaluation/results_041_100/latest.json
+          retention-days: 30
+
+      - name: Archive test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: equivalence-test-results
+          path: |
+            *.stl
+            target/release/polyframe
+          retention-days: 7
+
+  performance-benchmark:
+    name: Performance Benchmarks
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-bench-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Run benchmarks
+        run: cargo bench --no-fail-fast
+
+      - name: Archive benchmark results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: target/criterion/
+          retention-days: 30
+
+  code-quality:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Check formatting
+        run: cargo fmt -- --check
+
+      - name: Run Clippy
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+  # Optional: Notification on failure
+  notify-failure:
+    name: Notify on Failure
+    runs-on: ubuntu-latest
+    needs: [equivalence-test, performance-benchmark, code-quality]
+    if: failure()
+    
+    steps:
+      - name: Send notification
+        run: |
+          echo "Tests failed! Check the GitHub Actions logs for details."
+          # Add Slack/Discord webhook here if desired
+          # curl -X POST -H 'Content-type: application/json' \
+          #   --data '{"text":"Polyframe Kernel equivalence tests failed!"}' \
+          #   ${{ secrets.SLACK_WEBHOOK_URL }}
+
