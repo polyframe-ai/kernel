@@ -55,6 +55,11 @@ impl Reporter {
             result.bbox_delta,
         );
 
+        // Show note if present
+        if let Some(ref note) = result.note {
+            println!("\n{}", note.yellow());
+        }
+
         // Timing
         println!("\n{}", "Performance:".bold());
         if let Some(openscad_duration) = openscad_time {

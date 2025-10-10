@@ -48,6 +48,7 @@ pub fn compare_with_openscad(
             triangle_count_a: result.mesh.triangle_count(),
             triangle_count_b: result.mesh.triangle_count(),
             tolerance,
+            note: None,
         });
     }
 
