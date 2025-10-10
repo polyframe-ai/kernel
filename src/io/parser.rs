@@ -189,10 +189,17 @@ fn parse_block(pair: pest::iterators::Pair<Rule>) -> Result<Vec<Node>> {
 }
 
 fn parse_block_or_stmt(pair: pest::iterators::Pair<Rule>) -> Result<Vec<Node>> {
-    match pair.as_rule() {
-        Rule::block => parse_block(pair),
+    // block_or_stmt is a wrapper rule - unwrap it to get the actual block or statement
+    let inner = if pair.as_rule() == Rule::block_or_stmt {
+        pair.into_inner().next().unwrap()
+    } else {
+        pair
+    };
+
+    match inner.as_rule() {
+        Rule::block => parse_block(inner),
         Rule::statement => {
-            if let Some(node) = parse_statement(pair)? {
+            if let Some(node) = parse_statement(inner)? {
                 Ok(vec![node])
             } else {
                 Ok(vec![])
