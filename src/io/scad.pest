@@ -6,8 +6,8 @@ COMMENT = _{ "//" ~ (!"\n" ~ ANY)* ~ "\n" | "/*" ~ (!"*/" ~ ANY)* ~ "*/" }
 // Numbers
 number = @{ "-"? ~ ("0" | ASCII_NONZERO_DIGIT ~ ASCII_DIGIT*) ~ ("." ~ ASCII_DIGIT+)? ~ (^"e" ~ ("+" | "-")? ~ ASCII_DIGIT+)? }
 
-// Identifiers
-ident = @{ ASCII_ALPHA ~ (ASCII_ALPHANUMERIC | "_")* }
+// Identifiers (allow $ prefix for OpenSCAD special variables)
+ident = @{ "$"? ~ ASCII_ALPHA ~ (ASCII_ALPHANUMERIC | "_")* }
 
 // Literals
 boolean = { "true" | "false" }
