@@ -25,19 +25,21 @@ macro_rules! skip_if_no_openscad {
 #[test]
 fn test_io_equivalence_basic_cube() {
     skip_if_no_openscad!();
-    
+
     let path = Path::new("examples/primitives/cube.scad");
     if !path.exists() {
         println!("⏭  Skipping test: File not found");
         return;
     }
-    
+
     match compare_with_openscad(path, 1e-5, false) {
         Ok(comparison) => {
             if !comparison.passed {
                 println!("⚠️  Comparison failed but not failing test (may be expected in CI)");
-                println!("   Vertices: Polyframe={}, OpenSCAD={}", 
-                    comparison.vertex_count_a, comparison.vertex_count_b);
+                println!(
+                    "   Vertices: Polyframe={}, OpenSCAD={}",
+                    comparison.vertex_count_a, comparison.vertex_count_b
+                );
             }
             // Don't assert - just log the result for informational purposes
         }
@@ -50,19 +52,21 @@ fn test_io_equivalence_basic_cube() {
 #[test]
 fn test_io_equivalence_sphere() {
     skip_if_no_openscad!();
-    
+
     let path = Path::new("examples/primitives/sphere.scad");
     if !path.exists() {
         println!("⏭  Skipping test: File not found");
         return;
     }
-    
+
     match compare_with_openscad(path, 1e-5, false) {
         Ok(comparison) => {
             if !comparison.passed {
                 println!("⚠️  Comparison failed but not failing test (may be expected in CI)");
-                println!("   Vertices: Polyframe={}, OpenSCAD={}", 
-                    comparison.vertex_count_a, comparison.vertex_count_b);
+                println!(
+                    "   Vertices: Polyframe={}, OpenSCAD={}",
+                    comparison.vertex_count_a, comparison.vertex_count_b
+                );
             }
             // Don't assert - just log the result for informational purposes
         }
@@ -75,19 +79,21 @@ fn test_io_equivalence_sphere() {
 #[test]
 fn test_io_equivalence_difference() {
     skip_if_no_openscad!();
-    
+
     let path = Path::new("examples/operations/difference.scad");
     if !path.exists() {
         println!("⏭  Skipping test: File not found");
         return;
     }
-    
+
     match compare_with_openscad(path, 1e-5, false) {
         Ok(comparison) => {
             if !comparison.passed {
                 println!("⚠️  Comparison failed but not failing test (may be expected in CI)");
-                println!("   Vertices: Polyframe={}, OpenSCAD={}", 
-                    comparison.vertex_count_a, comparison.vertex_count_b);
+                println!(
+                    "   Vertices: Polyframe={}, OpenSCAD={}",
+                    comparison.vertex_count_a, comparison.vertex_count_b
+                );
             }
             // Don't assert - just log the result for informational purposes
         }
@@ -96,4 +102,3 @@ fn test_io_equivalence_difference() {
         }
     }
 }
-
