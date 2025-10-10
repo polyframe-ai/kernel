@@ -43,8 +43,8 @@ impl Evaluator {
 
     fn evaluate_node(&self, kind: &NodeKind, transform: &Matrix4<f32>) -> Result<Mesh> {
         match kind {
-            NodeKind::Cube(size) => {
-                let mut mesh = Primitive::cube(*size).to_mesh();
+            NodeKind::Cube { size, center } => {
+                let mut mesh = Primitive::cube(*size, *center).to_mesh();
                 mesh.transform(transform);
                 Ok(mesh)
             }

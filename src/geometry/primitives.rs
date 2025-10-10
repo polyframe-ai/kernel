@@ -9,15 +9,15 @@ use std::f32::consts::PI;
 
 /// Geometric primitives
 pub enum Primitive {
-    Cube(Vector3<f32>),
+    Cube { size: Vector3<f32>, center: bool },
     Sphere { r: f32, fn_: u32 },
     Cylinder { h: f32, r: f32, fn_: u32 },
     Cone { h: f32, r1: f32, r2: f32, fn_: u32 },
 }
 
 impl Primitive {
-    pub fn cube(size: Vector3<f32>) -> Self {
-        Self::Cube(size)
+    pub fn cube(size: Vector3<f32>, center: bool) -> Self {
+        Self::Cube { size, center }
     }
 
     pub fn sphere(r: f32, fn_: u32) -> Self {
@@ -46,7 +46,7 @@ impl Primitive {
 
     pub fn to_mesh(&self) -> Mesh {
         match self {
-            Self::Cube(size) => generate_cube_mesh(*size),
+            Self::Cube { size, center } => generate_cube_mesh(*size, *center),
             Self::Sphere { r, fn_ } => generate_sphere_mesh(*r, *fn_),
             Self::Cylinder { h, r, fn_ } => generate_cylinder_mesh(*h, *r, *fn_),
             Self::Cone { h, r1, r2, fn_ } => generate_cone_mesh(*h, *r1, *r2, *fn_),
@@ -54,22 +54,36 @@ impl Primitive {
     }
 }
 
-fn generate_cube_mesh(size: Vector3<f32>) -> Mesh {
+fn generate_cube_mesh(size: Vector3<f32>, center: bool) -> Mesh {
     let mut mesh = Mesh::new();
-    let hx = size.x / 2.0;
-    let hy = size.y / 2.0;
-    let hz = size.z / 2.0;
+
+    // Calculate cube positions based on center flag
+    let (min_x, max_x) = if center {
+        (-size.x / 2.0, size.x / 2.0)
+    } else {
+        (0.0, size.x)
+    };
+    let (min_y, max_y) = if center {
+        (-size.y / 2.0, size.y / 2.0)
+    } else {
+        (0.0, size.y)
+    };
+    let (min_z, max_z) = if center {
+        (-size.z / 2.0, size.z / 2.0)
+    } else {
+        (0.0, size.z)
+    };
 
     // 8 vertices of the cube
     let positions = [
-        Point3::new(-hx, -hy, -hz),
-        Point3::new(hx, -hy, -hz),
-        Point3::new(hx, hy, -hz),
-        Point3::new(-hx, hy, -hz),
-        Point3::new(-hx, -hy, hz),
-        Point3::new(hx, -hy, hz),
-        Point3::new(hx, hy, hz),
-        Point3::new(-hx, hy, hz),
+        Point3::new(min_x, min_y, min_z),
+        Point3::new(max_x, min_y, min_z),
+        Point3::new(max_x, max_y, min_z),
+        Point3::new(min_x, max_y, min_z),
+        Point3::new(min_x, min_y, max_z),
+        Point3::new(max_x, min_y, max_z),
+        Point3::new(max_x, max_y, max_z),
+        Point3::new(min_x, max_y, max_z),
     ];
 
     // 6 faces, each with its normal

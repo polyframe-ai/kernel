@@ -3,12 +3,14 @@
 
 //! Geometry module - mesh representation and operations
 
+pub mod analytics;
 mod bbox;
 mod boolean;
 mod mesh;
 mod parallel_boolean;
 mod primitives;
 
+pub use analytics::{analyze, GeometryStats};
 pub use bbox::BoundingBox;
 pub use boolean::BooleanOp;
 pub use mesh::{Mesh, Triangle, Vertex};

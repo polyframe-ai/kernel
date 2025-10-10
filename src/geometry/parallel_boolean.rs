@@ -114,7 +114,7 @@ mod tests {
     #[test]
     fn test_parallel_union() {
         let meshes = vec![
-            Primitive::cube(Vector3::new(10.0, 10.0, 10.0)).to_mesh(),
+            Primitive::cube(Vector3::new(10.0, 10.0, 10.0), true).to_mesh(),
             Primitive::sphere(5.0, 16).to_mesh(),
             Primitive::cylinder(10.0, 3.0, 16).to_mesh(),
         ];
@@ -127,7 +127,7 @@ mod tests {
     #[test]
     fn test_parallel_transform() {
         let meshes = vec![
-            Primitive::cube(Vector3::new(10.0, 10.0, 10.0)).to_mesh(),
+            Primitive::cube(Vector3::new(10.0, 10.0, 10.0), true).to_mesh(),
             Primitive::sphere(5.0, 16).to_mesh(),
         ];
 
@@ -139,7 +139,7 @@ mod tests {
 
     #[test]
     fn test_thread_safe_mesh() {
-        let mesh = Primitive::cube(Vector3::new(10.0, 10.0, 10.0)).to_mesh();
+        let mesh = Primitive::cube(Vector3::new(10.0, 10.0, 10.0), true).to_mesh();
         let safe_mesh: ThreadSafeMesh = Arc::new(RwLock::new(mesh));
 
         let cloned = safe_mesh.clone_mesh();

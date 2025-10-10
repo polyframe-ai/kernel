@@ -119,7 +119,10 @@ fn bench_incremental_vs_full(c: &mut Criterion) {
 
     // Create a complex AST with multiple nodes
     let child1 = Node::with_id(
-        NodeKind::Cube(Vector3::new(10.0, 10.0, 10.0)),
+        NodeKind::Cube {
+            size: Vector3::new(10.0, 10.0, 10.0),
+            center: false,
+        },
         "cube1".into(),
     );
     let child2 = Node::with_id(NodeKind::Sphere { r: 5.0, fn_: 32 }, "sphere1".into());
@@ -219,7 +222,12 @@ fn bench_memory_usage(c: &mut Criterion) {
 
     // Large mesh generation
     let large_union: Vec<Node> = (0..50)
-        .map(|i| Node::new(NodeKind::Cube(Vector3::new(5.0 + i as f32 * 0.1, 5.0, 5.0))))
+        .map(|i| {
+            Node::new(NodeKind::Cube {
+                size: Vector3::new(5.0 + i as f32 * 0.1, 5.0, 5.0),
+                center: false,
+            })
+        })
         .collect();
 
     let union_node = Node::new(NodeKind::Union(large_union));
@@ -240,7 +248,10 @@ fn bench_cache_effectiveness(c: &mut Criterion) {
 
     // Build a tree with repeated nodes
     let base_cube = Node::with_id(
-        NodeKind::Cube(Vector3::new(10.0, 10.0, 10.0)),
+        NodeKind::Cube {
+            size: Vector3::new(10.0, 10.0, 10.0),
+            center: false,
+        },
         "base_cube".into(),
     );
 

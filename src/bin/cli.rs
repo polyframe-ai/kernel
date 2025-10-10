@@ -96,6 +96,16 @@ enum Commands {
         output: Option<String>,
     },
 
+    /// Analyze geometry and print statistics
+    Analyze {
+        /// Input file (STL, 3MF, or SCAD)
+        input: String,
+
+        /// Output format (json, text)
+        #[arg(short, long, default_value = "text")]
+        format: String,
+    },
+
     /// Show version information
     Version,
 }
@@ -134,6 +144,9 @@ fn main() -> Result<()> {
         }
         Some(Commands::Parse { input, output }) => {
             parse_command(input, output.as_deref(), cli.verbose)?;
+        }
+        Some(Commands::Analyze { input, format }) => {
+            analyze_command(input, format, cli.verbose)?;
         }
         Some(Commands::Version) => {
             println!("Polyframe Kernel v{}", env!("CARGO_PKG_VERSION"));
@@ -241,9 +254,10 @@ fn render_command(
         "stl" => io::export_stl(&mesh, output)?,
         "3mf" => io::export_3mf(&mesh, output)?,
         "gltf" | "glb" => io::export_gltf(&mesh, output)?,
+        "step" | "stp" => io::export_step(&mesh, output)?,
         _ => {
             eprintln!("Error: Unsupported format: {}", format);
-            eprintln!("Supported formats: stl, 3mf, gltf");
+            eprintln!("Supported formats: stl, 3mf, gltf, glb, step");
             std::process::exit(1);
         }
     }
@@ -507,6 +521,48 @@ fn parse_command(input: &str, output: Option<&str>, verbose: bool) -> Result<()>
         }
     } else {
         println!("{}", json);
+    }
+
+    Ok(())
+}
+
+fn analyze_command(input: &str, format: &str, verbose: bool) -> Result<()> {
+    use polyframe::geometry::analyze;
+
+    if verbose {
+        println!("Analyzing: {}", input);
+    }
+
+    // Check if input file exists
+    if !Path::new(input).exists() {
+        eprintln!("Error: Input file not found: {}", input);
+        std::process::exit(1);
+    }
+
+    // Render the mesh first
+    let mesh = if input.ends_with(".scad") {
+        polyframe::render_file(input)?
+    } else if input.ends_with(".stl") {
+        // For STL files, we'd need an STL importer
+        // For now, try to render as SCAD
+        eprintln!("Note: STL import not yet implemented, trying as SCAD");
+        polyframe::render_file(input)?
+    } else {
+        polyframe::render_file(input)?
+    };
+
+    // Analyze the mesh
+    let stats = analyze(&mesh);
+
+    // Output based on format
+    match format.to_lowercase().as_str() {
+        "json" => {
+            let json = serde_json::to_string_pretty(&stats)?;
+            println!("{}", json);
+        }
+        "text" | _ => {
+            stats.print();
+        }
     }
 
     Ok(())

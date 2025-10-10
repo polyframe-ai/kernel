@@ -21,8 +21,8 @@ pub mod ffi;
 pub use ast::{
     CacheStats, IncrementalEvaluator, Node, NodeId, NodeKind, ParallelEvaluator, TransformOp,
 };
-pub use geometry::{Mesh, Primitive};
-pub use io::{export_3mf, export_gltf, export_stl, import_scad_file, parse_scad};
+pub use geometry::{analyze, GeometryStats, Mesh, Primitive};
+pub use io::{export_3mf, export_gltf, export_step, export_stl, import_scad_file, parse_scad};
 pub use kernel::Kernel;
 
 use anyhow::Result;

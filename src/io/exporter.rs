@@ -95,20 +95,6 @@ fn export_stl_ascii(mesh: &Mesh, path: &Path) -> Result<()> {
     Ok(())
 }
 
-/// Export mesh to 3MF format
-pub fn export_3mf(_mesh: &Mesh, _path: &str) -> Result<()> {
-    // 3MF export is more complex and would require a dedicated library
-    // For now, we'll create a basic implementation
-    anyhow::bail!("3MF export not yet implemented. Please use STL format.")
-}
-
-/// Export mesh to GLTF format
-pub fn export_gltf(_mesh: &Mesh, _path: &str) -> Result<()> {
-    // GLTF export would require gltf-json crate
-    // For now, we'll create a basic implementation
-    anyhow::bail!("GLTF export not yet implemented. Please use STL format.")
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -118,7 +104,7 @@ mod tests {
 
     #[test]
     fn test_export_stl() -> Result<()> {
-        let mesh = Primitive::cube(Vector3::new(10.0, 10.0, 10.0)).to_mesh();
+        let mesh = Primitive::cube(Vector3::new(10.0, 10.0, 10.0), true).to_mesh();
 
         let file = NamedTempFile::new()?;
         let path = file.path().to_str().unwrap();

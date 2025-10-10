@@ -18,7 +18,10 @@ fn main() {
 
     // Create a complex AST for testing
     let child1 = Node::with_id(
-        NodeKind::Cube(Vector3::new(10.0, 10.0, 10.0)),
+        NodeKind::Cube {
+            size: Vector3::new(10.0, 10.0, 10.0),
+            center: false,
+        },
         "cube1".into(),
     );
 

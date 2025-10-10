@@ -87,7 +87,7 @@ mod tests {
 
     #[test]
     fn test_union() {
-        let mesh_a = Primitive::cube(nalgebra::Vector3::new(10.0, 10.0, 10.0)).to_mesh();
+        let mesh_a = Primitive::cube(nalgebra::Vector3::new(10.0, 10.0, 10.0), true).to_mesh();
         let mesh_b = Primitive::sphere(5.0, 16).to_mesh();
 
         let result = perform_boolean_operation(&mesh_a, &mesh_b, BooleanOp::Union);

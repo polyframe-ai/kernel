@@ -71,7 +71,8 @@ fn parse_primitive(pair: pest::iterators::Pair<Rule>) -> Result<Option<Node>> {
                 .get_vector("size")
                 .or_else(|| params.get_positional_vector(0))
                 .unwrap_or(Vector3::new(1.0, 1.0, 1.0));
-            Ok(Some(Node::new(NodeKind::Cube(size))))
+            let center = params.get_boolean("center").unwrap_or(false);
+            Ok(Some(Node::new(NodeKind::Cube { size, center })))
         }
         Rule::sphere_stmt => {
             let params = parse_params(inner)?;
@@ -235,6 +236,13 @@ impl Params {
     fn get_vector(&self, name: &str) -> Option<Vec3> {
         self.named.get(name).and_then(|v| match v {
             Value::Vector(v) => Some(*v),
+            _ => None,
+        })
+    }
+
+    fn get_boolean(&self, name: &str) -> Option<bool> {
+        self.named.get(name).and_then(|v| match v {
+            Value::Boolean(b) => Some(*b),
             _ => None,
         })
     }

@@ -125,7 +125,13 @@ mod tests {
 
     #[test]
     fn test_kernel_basic_render() {
-        let ast = Node::with_id(NodeKind::Cube(Vec3::new(10.0, 10.0, 10.0)), "cube1".into());
+        let ast = Node::with_id(
+            NodeKind::Cube {
+                size: Vec3::new(10.0, 10.0, 10.0),
+                center: true,
+            },
+            "cube1".into(),
+        );
 
         let kernel = Kernel::with_ast(ast);
         let mesh = kernel.render().unwrap();
@@ -134,7 +140,13 @@ mod tests {
 
     #[test]
     fn test_kernel_update_subtree() {
-        let child = Node::with_id(NodeKind::Cube(Vec3::new(10.0, 10.0, 10.0)), "child1".into());
+        let child = Node::with_id(
+            NodeKind::Cube {
+                size: Vec3::new(10.0, 10.0, 10.0),
+                center: true,
+            },
+            "child1".into(),
+        );
         let root = Node::with_id(NodeKind::Union(vec![child]), "root".into());
 
         let mut kernel = Kernel::with_ast(root);

@@ -94,8 +94,8 @@ mod tests {
 
     #[test]
     fn test_compare_identical_meshes() {
-        let mesh_a = Primitive::cube(Vector3::new(10.0, 10.0, 10.0)).to_mesh();
-        let mesh_b = Primitive::cube(Vector3::new(10.0, 10.0, 10.0)).to_mesh();
+        let mesh_a = Primitive::cube(Vector3::new(10.0, 10.0, 10.0), true).to_mesh();
+        let mesh_b = Primitive::cube(Vector3::new(10.0, 10.0, 10.0), true).to_mesh();
 
         let comparison = compare_meshes(&mesh_a, &mesh_b, 0.001);
         assert!(comparison.passed);
@@ -106,8 +106,8 @@ mod tests {
 
     #[test]
     fn test_compare_different_sizes() {
-        let mesh_a = Primitive::cube(Vector3::new(10.0, 10.0, 10.0)).to_mesh();
-        let mesh_b = Primitive::cube(Vector3::new(20.0, 20.0, 20.0)).to_mesh();
+        let mesh_a = Primitive::cube(Vector3::new(10.0, 10.0, 10.0), true).to_mesh();
+        let mesh_b = Primitive::cube(Vector3::new(20.0, 20.0, 20.0), true).to_mesh();
 
         let comparison = compare_meshes(&mesh_a, &mesh_b, 0.001);
         assert!(!comparison.bbox_match);

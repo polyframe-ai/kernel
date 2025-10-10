@@ -29,7 +29,10 @@ impl Node {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum NodeKind {
     // Primitives
-    Cube(Vec3),
+    Cube {
+        size: Vec3,
+        center: bool,
+    },
     Sphere {
         r: f32,
         fn_: u32,

@@ -154,7 +154,13 @@ mod tests {
 
     #[test]
     fn test_dependency_graph() {
-        let child1 = Node::with_id(NodeKind::Cube(Vec3::new(10.0, 10.0, 10.0)), "child1".into());
+        let child1 = Node::with_id(
+            NodeKind::Cube {
+                size: Vec3::new(10.0, 10.0, 10.0),
+                center: true,
+            },
+            "child1".into(),
+        );
         let child2 = Node::with_id(NodeKind::Sphere { r: 5.0, fn_: 32 }, "child2".into());
         let root = Node::with_id(NodeKind::Union(vec![child1, child2]), "root".into());
 

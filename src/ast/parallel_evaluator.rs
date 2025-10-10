@@ -20,8 +20,8 @@ impl ParallelEvaluator {
 
     fn evaluate_node(kind: &NodeKind, transform: &Matrix4<f32>) -> Result<Mesh> {
         match kind {
-            NodeKind::Cube(size) => {
-                let mut mesh = Primitive::cube(*size).to_mesh();
+            NodeKind::Cube { size, center } => {
+                let mut mesh = Primitive::cube(*size, *center).to_mesh();
                 mesh.transform(transform);
                 Ok(mesh)
             }
@@ -103,7 +103,10 @@ mod tests {
 
     #[test]
     fn test_parallel_evaluate_union() {
-        let child1 = Node::new(NodeKind::Cube(Vec3::new(10.0, 10.0, 10.0)));
+        let child1 = Node::new(NodeKind::Cube {
+            size: Vec3::new(10.0, 10.0, 10.0),
+            center: true,
+        });
         let child2 = Node::new(NodeKind::Sphere { r: 5.0, fn_: 32 });
         let root = Node::new(NodeKind::Union(vec![child1, child2]));
 
@@ -113,7 +116,10 @@ mod tests {
 
     #[test]
     fn test_parallel_evaluate_transform() {
-        let cube = Node::new(NodeKind::Cube(Vec3::new(10.0, 10.0, 10.0)));
+        let cube = Node::new(NodeKind::Cube {
+            size: Vec3::new(10.0, 10.0, 10.0),
+            center: true,
+        });
         let root = Node::new(NodeKind::Transform {
             op: crate::ast::TransformOp::Translate(Vec3::new(5.0, 0.0, 0.0)),
             children: vec![cube],
