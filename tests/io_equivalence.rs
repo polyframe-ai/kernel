@@ -4,58 +4,96 @@
 //! I/O Equivalence Testing - Verify Polyframe outputs match OpenSCAD
 
 use polyframe::cli::{compare_with_openscad, Runner};
-use anyhow::Result;
 use std::path::Path;
 
-/// Helper function to run comparison test
-fn run_equivalence_test(file_path: &str, tolerance: f32) -> Result<bool> {
-    let path = Path::new(file_path);
-    
-    if !path.exists() {
-        println!("Test file not found: {}", file_path);
-        return Ok(true); // Skip if file doesn't exist
-    }
-    
-    // Check if OpenSCAD is available
+/// Helper function to check if we should skip OpenSCAD tests
+fn should_skip_openscad_tests() -> bool {
     let runner = Runner::new();
-    if !runner.is_openscad_available() {
-        println!("OpenSCAD not found, skipping test");
-        return Ok(true); // Skip if OpenSCAD not available
-    }
-    
-    // Run comparison (verbose=false for tests)
-    let result = compare_with_openscad(path, tolerance, false)?;
-    
-    Ok(result.passed)
+    !runner.is_openscad_available()
+}
+
+/// Helper macro to skip test if OpenSCAD is not available
+macro_rules! skip_if_no_openscad {
+    () => {
+        if should_skip_openscad_tests() {
+            println!("⏭  Skipping test: OpenSCAD not available in CI environment");
+            return;
+        }
+    };
 }
 
 #[test]
 fn test_io_equivalence_basic_cube() {
-    let result = run_equivalence_test("examples/primitives/cube.scad", 1e-5);
+    skip_if_no_openscad!();
     
+    let path = Path::new("examples/primitives/cube.scad");
+    if !path.exists() {
+        println!("⏭  Skipping test: File not found");
+        return;
+    }
+    
+    let result = compare_with_openscad(path, 1e-5, false);
     match result {
-        Ok(passed) => assert!(passed, "I/O equivalence test failed for cube.scad"),
-        Err(e) => println!("Test error (may be expected if OpenSCAD not installed): {}", e),
+        Ok(comparison) => {
+            assert!(
+                comparison.passed,
+                "I/O equivalence test failed for cube.scad: vertex count mismatch"
+            );
+        }
+        Err(e) => {
+            println!("⚠️  Test error: {}", e);
+            // Don't fail the test if it's an expected error
+        }
     }
 }
 
 #[test]
 fn test_io_equivalence_sphere() {
-    let result = run_equivalence_test("examples/primitives/sphere.scad", 1e-5);
+    skip_if_no_openscad!();
     
+    let path = Path::new("examples/primitives/sphere.scad");
+    if !path.exists() {
+        println!("⏭  Skipping test: File not found");
+        return;
+    }
+    
+    let result = compare_with_openscad(path, 1e-5, false);
     match result {
-        Ok(passed) => assert!(passed, "I/O equivalence test failed for sphere.scad"),
-        Err(e) => println!("Test error (may be expected if OpenSCAD not installed): {}", e),
+        Ok(comparison) => {
+            assert!(
+                comparison.passed,
+                "I/O equivalence test failed for sphere.scad: vertex count mismatch"
+            );
+        }
+        Err(e) => {
+            println!("⚠️  Test error: {}", e);
+            // Don't fail the test if it's an expected error
+        }
     }
 }
 
 #[test]
 fn test_io_equivalence_difference() {
-    let result = run_equivalence_test("examples/operations/difference.scad", 1e-5);
+    skip_if_no_openscad!();
     
+    let path = Path::new("examples/operations/difference.scad");
+    if !path.exists() {
+        println!("⏭  Skipping test: File not found");
+        return;
+    }
+    
+    let result = compare_with_openscad(path, 1e-5, false);
     match result {
-        Ok(passed) => assert!(passed, "I/O equivalence test failed for difference.scad"),
-        Err(e) => println!("Test error (may be expected if OpenSCAD not installed): {}", e),
+        Ok(comparison) => {
+            assert!(
+                comparison.passed,
+                "I/O equivalence test failed for difference.scad: vertex count mismatch"
+            );
+        }
+        Err(e) => {
+            println!("⚠️  Test error: {}", e);
+            // Don't fail the test if it's an expected error
+        }
     }
 }
 
