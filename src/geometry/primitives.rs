@@ -169,16 +169,16 @@ fn generate_cone_mesh(height: f32, r1: f32, r2: f32, segments: u32) -> Mesh {
     let mut mesh = Mesh::new();
     let half_h = height / 2.0;
 
-    // Bottom center
+    // Bottom center (OpenSCAD uses Z-axis for height)
     let bottom_center_idx = mesh.add_vertex(Vertex::new(
-        Point3::new(0.0, -half_h, 0.0),
-        Vector3::new(0.0, -1.0, 0.0),
+        Point3::new(0.0, 0.0, -half_h),
+        Vector3::new(0.0, 0.0, -1.0),
     ));
 
     // Top center
     let top_center_idx = mesh.add_vertex(Vertex::new(
-        Point3::new(0.0, half_h, 0.0),
-        Vector3::new(0.0, 1.0, 0.0),
+        Point3::new(0.0, 0.0, half_h),
+        Vector3::new(0.0, 0.0, 1.0),
     ));
 
     // Generate vertices
@@ -190,14 +190,14 @@ fn generate_cone_mesh(height: f32, r1: f32, r2: f32, segments: u32) -> Mesh {
         let cos = angle.cos();
         let sin = angle.sin();
 
-        // Bottom vertex
-        let bottom_pos = Point3::new(r1 * cos, -half_h, r1 * sin);
-        let bottom_idx = mesh.add_vertex(Vertex::new(bottom_pos, Vector3::new(0.0, -1.0, 0.0)));
+        // Bottom vertex (Z-axis for height)
+        let bottom_pos = Point3::new(r1 * cos, r1 * sin, -half_h);
+        let bottom_idx = mesh.add_vertex(Vertex::new(bottom_pos, Vector3::new(0.0, 0.0, -1.0)));
         bottom_indices.push(bottom_idx);
 
         // Top vertex
-        let top_pos = Point3::new(r2 * cos, half_h, r2 * sin);
-        let top_idx = mesh.add_vertex(Vertex::new(top_pos, Vector3::new(0.0, 1.0, 0.0)));
+        let top_pos = Point3::new(r2 * cos, r2 * sin, half_h);
+        let top_idx = mesh.add_vertex(Vertex::new(top_pos, Vector3::new(0.0, 0.0, 1.0)));
         top_indices.push(top_idx);
     }
 
