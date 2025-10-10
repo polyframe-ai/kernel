@@ -4,101 +4,93 @@
 //! I/O Equivalence Testing - Verify Polyframe outputs match OpenSCAD
 
 use polyframe::cli::{compare_with_openscad, Runner};
+use polyframe::render_file;
 use std::path::Path;
 
-/// Helper function to check if we should skip OpenSCAD tests
-fn should_skip_openscad_tests() -> bool {
+/// Helper function to check if OpenSCAD is available
+fn is_openscad_available() -> bool {
     let runner = Runner::new();
-    !runner.is_openscad_available()
+    runner.is_openscad_available()
 }
 
-/// Helper macro to skip test if OpenSCAD is not available
-macro_rules! skip_if_no_openscad {
-    () => {
-        if should_skip_openscad_tests() {
-            println!("⏭  Skipping test: OpenSCAD not available in CI environment");
-            return;
+/// Test that Polyframe can at least render the file, with optional OpenSCAD comparison
+fn test_render_and_compare(file_path: &str, tolerance: f32, expected_min_vertices: usize) {
+    let path = Path::new(file_path);
+
+    if !path.exists() {
+        panic!("Test file not found: {}", file_path);
+    }
+
+    // Always test that Polyframe can render
+    println!("Testing Polyframe rendering of: {}", file_path);
+    let mesh = render_file(file_path).expect("Polyframe failed to render");
+
+    println!(
+        "  Polyframe output: {} vertices, {} triangles",
+        mesh.vertex_count(),
+        mesh.triangle_count()
+    );
+
+    // Verify minimum mesh quality
+    assert!(
+        mesh.vertex_count() >= expected_min_vertices,
+        "Polyframe generated too few vertices: {} < {}",
+        mesh.vertex_count(),
+        expected_min_vertices
+    );
+    assert!(
+        mesh.triangle_count() > 0,
+        "Polyframe generated no triangles"
+    );
+
+    // If OpenSCAD is available, do comparison
+    if is_openscad_available() {
+        println!("  OpenSCAD available, running comparison...");
+        match compare_with_openscad(path, tolerance, false) {
+            Ok(comparison) => {
+                println!(
+                    "  Comparison result: {}",
+                    if comparison.passed {
+                        "PASSED"
+                    } else {
+                        "FAILED"
+                    }
+                );
+                println!("    Vertex delta: {:.2}%", comparison.vertex_delta);
+                println!("    Triangle delta: {:.2}%", comparison.triangle_delta);
+
+                // Only assert if comparison is within reasonable bounds
+                // (some minor differences may be acceptable due to different implementations)
+                if comparison.vertex_delta > 50.0 || comparison.triangle_delta > 50.0 {
+                    panic!(
+                        "Large discrepancy with OpenSCAD: vertex_delta={:.2}%, triangle_delta={:.2}%",
+                        comparison.vertex_delta, comparison.triangle_delta
+                    );
+                }
+            }
+            Err(e) => {
+                println!("  Comparison error: {}", e);
+            }
         }
-    };
+    } else {
+        println!("  OpenSCAD not available, skipping comparison");
+    }
 }
 
 #[test]
 fn test_io_equivalence_basic_cube() {
-    skip_if_no_openscad!();
-
-    let path = Path::new("examples/primitives/cube.scad");
-    if !path.exists() {
-        println!("⏭  Skipping test: File not found");
-        return;
-    }
-
-    match compare_with_openscad(path, 1e-5, false) {
-        Ok(comparison) => {
-            if !comparison.passed {
-                println!("⚠️  Comparison failed but not failing test (may be expected in CI)");
-                println!(
-                    "   Vertices: Polyframe={}, OpenSCAD={}",
-                    comparison.vertex_count_a, comparison.vertex_count_b
-                );
-            }
-            // Don't assert - just log the result for informational purposes
-        }
-        Err(e) => {
-            println!("⚠️  Test error (skipping): {}", e);
-        }
-    }
+    // Cube should have at least 8 vertices (corners), typically 36 with normals
+    test_render_and_compare("examples/primitives/cube.scad", 1e-5, 8);
 }
 
 #[test]
 fn test_io_equivalence_sphere() {
-    skip_if_no_openscad!();
-
-    let path = Path::new("examples/primitives/sphere.scad");
-    if !path.exists() {
-        println!("⏭  Skipping test: File not found");
-        return;
-    }
-
-    match compare_with_openscad(path, 1e-5, false) {
-        Ok(comparison) => {
-            if !comparison.passed {
-                println!("⚠️  Comparison failed but not failing test (may be expected in CI)");
-                println!(
-                    "   Vertices: Polyframe={}, OpenSCAD={}",
-                    comparison.vertex_count_a, comparison.vertex_count_b
-                );
-            }
-            // Don't assert - just log the result for informational purposes
-        }
-        Err(e) => {
-            println!("⚠️  Test error (skipping): {}", e);
-        }
-    }
+    // Sphere should have many vertices depending on $fn
+    test_render_and_compare("examples/primitives/sphere.scad", 1e-5, 32);
 }
 
 #[test]
 fn test_io_equivalence_difference() {
-    skip_if_no_openscad!();
-
-    let path = Path::new("examples/operations/difference.scad");
-    if !path.exists() {
-        println!("⏭  Skipping test: File not found");
-        return;
-    }
-
-    match compare_with_openscad(path, 1e-5, false) {
-        Ok(comparison) => {
-            if !comparison.passed {
-                println!("⚠️  Comparison failed but not failing test (may be expected in CI)");
-                println!(
-                    "   Vertices: Polyframe={}, OpenSCAD={}",
-                    comparison.vertex_count_a, comparison.vertex_count_b
-                );
-            }
-            // Don't assert - just log the result for informational purposes
-        }
-        Err(e) => {
-            println!("⚠️  Test error (skipping): {}", e);
-        }
-    }
+    // Difference operation should produce a valid mesh
+    test_render_and_compare("examples/operations/difference.scad", 1e-5, 8);
 }

@@ -15,7 +15,8 @@ struct ScadParser;
 
 /// Parse OpenSCAD source code into an AST
 pub fn parse_scad(source: &str) -> Result<Node> {
-    let mut pairs = ScadParser::parse(Rule::program, source).context("Failed to parse SCAD source")?;
+    let mut pairs =
+        ScadParser::parse(Rule::program, source).context("Failed to parse SCAD source")?;
 
     let mut statements = Vec::new();
 
