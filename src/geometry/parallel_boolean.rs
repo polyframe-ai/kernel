@@ -26,16 +26,13 @@ impl ParallelBooleanExecutor {
         }
 
         // Parallel reduce using rayon
-        let result = meshes.into_par_iter().reduce(
-            Mesh::empty,
-            |acc, mesh| {
-                if acc.vertex_count() == 0 {
-                    mesh
-                } else {
-                    acc.boolean_operation(&mesh, op.clone()).unwrap_or(acc)
-                }
-            },
-        );
+        let result = meshes.into_par_iter().reduce(Mesh::empty, |acc, mesh| {
+            if acc.vertex_count() == 0 {
+                mesh
+            } else {
+                acc.boolean_operation(&mesh, op.clone()).unwrap_or(acc)
+            }
+        });
 
         Ok(result)
     }

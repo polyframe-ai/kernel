@@ -128,8 +128,7 @@ pub fn discover_models(paths: &[PathBuf]) -> Result<Vec<PathBuf>> {
                 .filter_map(|e| e.ok())
             {
                 let entry_path = entry.path();
-                if entry_path.is_file() && entry_path.extension().is_some_and(|ext| ext == "scad")
-                {
+                if entry_path.is_file() && entry_path.extension().is_some_and(|ext| ext == "scad") {
                     models.push(entry_path.to_path_buf());
                 }
             }
