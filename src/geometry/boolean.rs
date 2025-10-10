@@ -17,39 +17,13 @@ pub enum BooleanOp {
 
 /// Perform boolean operation between two meshes
 pub fn perform_boolean_operation(mesh_a: &Mesh, mesh_b: &Mesh, op: BooleanOp) -> Result<Mesh> {
-    // Implement proper CSG operations
-    // Note: Full CSG is complex and requires mesh intersection, clipping, etc.
-    // For v1, we use robust mesh merging with basic overlap handling
+    use super::csg;
 
     match op {
-        BooleanOp::Union => perform_union(mesh_a, mesh_b),
-        BooleanOp::Difference => perform_difference(mesh_a, mesh_b),
-        BooleanOp::Intersection => perform_intersection(mesh_a, mesh_b),
+        BooleanOp::Union => csg::csg_union(mesh_a, mesh_b),
+        BooleanOp::Difference => csg::csg_difference(mesh_a, mesh_b),
+        BooleanOp::Intersection => csg::csg_intersection(mesh_a, mesh_b),
     }
-}
-
-/// Perform union operation (combine meshes)
-fn perform_union(mesh_a: &Mesh, mesh_b: &Mesh) -> Result<Mesh> {
-    // For union, merge all geometry
-    let mut result = mesh_a.clone();
-    result.merge(mesh_b);
-    Ok(result)
-}
-
-/// Perform difference operation (subtract mesh_b from mesh_a)
-fn perform_difference(mesh_a: &Mesh, _mesh_b: &Mesh) -> Result<Mesh> {
-    // For difference, return mesh_a
-    // Proper CSG would clip mesh_a by mesh_b's volume
-    // This is a simplified implementation that returns the first mesh
-    Ok(mesh_a.clone())
-}
-
-/// Perform intersection operation (keep only overlapping volume)
-fn perform_intersection(_mesh_a: &Mesh, _mesh_b: &Mesh) -> Result<Mesh> {
-    // For intersection, we'd need to find overlapping regions
-    // Simplified: return empty for now
-    // TODO: Implement proper volume intersection
-    Ok(Mesh::empty())
 }
 
 /// Convert Mesh to parry3d TriMesh

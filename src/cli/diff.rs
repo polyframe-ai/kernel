@@ -87,12 +87,17 @@ impl MeshDiff {
 
         let passed = vertex_delta < vertex_tolerance && bbox_delta < bbox_tolerance;
 
-        let note = if vertex_delta > 0.40 && passed {
+        let note = if vertex_delta > 0.40 {
             if bbox_delta < 0.15 {
                 Some(format!(
                     "Note: Large vertex count difference ({:.1}%) is due to different sphere/cylinder tessellation strategies. Geometry is equivalent (bbox delta: {:.2}%).",
                     vertex_delta * 100.0,
                     bbox_delta * 100.0
+                ))
+            } else if vertex_delta > 0.95 {
+                Some(format!(
+                    "WARNING: Difference/Intersection operations not yet fully implemented. Polyframe returns simplified geometry. This is a known limitation planned for future release. Vertex delta: {:.1}%",
+                    vertex_delta * 100.0
                 ))
             } else {
                 Some(format!(
