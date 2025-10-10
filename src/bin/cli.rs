@@ -69,6 +69,10 @@ enum Commands {
         /// Comparison tolerance
         #[arg(short, long, default_value = "0.00001")]
         tolerance: f32,
+
+        /// Verbose output
+        #[arg(short, long)]
+        verbose: bool,
     },
 
     /// Run evaluation harness on dataset
@@ -118,8 +122,12 @@ fn main() -> Result<()> {
                 cli.verbose,
             )?;
         }
-        Some(Commands::Compare { inputs, tolerance }) => {
-            compare_command(inputs, *tolerance, cli.verbose)?;
+        Some(Commands::Compare {
+            inputs,
+            tolerance,
+            verbose,
+        }) => {
+            compare_command(inputs, *tolerance, *verbose)?;
         }
         Some(Commands::Eval { dataset, out }) => {
             eval_command(dataset, out, cli.verbose)?;
