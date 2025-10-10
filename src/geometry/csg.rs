@@ -77,9 +77,46 @@ impl Plane {
                 }
             }
             _ => {
-                // Polygon spans the plane - split it
-                front.push(polygon.clone());
-                back.push(polygon.clone());
+                // Polygon spans the plane - actually split it
+                let mut front_verts = Vec::new();
+                let mut back_verts = Vec::new();
+
+                for i in 0..polygon.vertices.len() {
+                    let j = (i + 1) % polygon.vertices.len();
+                    let vi = &polygon.vertices[i];
+                    let vj = &polygon.vertices[j];
+                    let ti = classifications[i];
+                    let tj = classifications[j];
+
+                    // Add vertex i to appropriate side(s)
+                    if ti >= -EPSILON {
+                        front_verts.push(*vi);
+                    }
+                    if ti <= EPSILON {
+                        back_verts.push(*vi);
+                    }
+
+                    // If edge crosses plane, add intersection vertex
+                    if (ti > EPSILON && tj < -EPSILON) || (ti < -EPSILON && tj > EPSILON) {
+                        let t = ti / (ti - tj);
+                        let pos = vi.position + (vj.position - vi.position) * t;
+                        let normal = (vi.normal + (vj.normal - vi.normal) * t).normalize();
+                        let intersect = Vertex::new(pos, normal);
+                        front_verts.push(intersect);
+                        back_verts.push(intersect);
+                    }
+                }
+
+                if front_verts.len() >= 3 {
+                    front.push(Polygon {
+                        vertices: front_verts,
+                    });
+                }
+                if back_verts.len() >= 3 {
+                    back.push(Polygon {
+                        vertices: back_verts,
+                    });
+                }
             }
         }
 
@@ -277,12 +314,17 @@ pub fn csg_difference(a: &Mesh, b: &Mesh) -> Result<Mesh> {
     let mut tree_a = BSPNode::new(polys_a);
     let mut tree_b = BSPNode::new(polys_b);
 
-    // A - B is computed as: invert B, clip A to B, clip B to A, invert B, combine
-    tree_b.invert();
+    // Standard CSG difference algorithm (A - B):
+    // Invert A, clip A to B, clip B to A, invert B, clip B to A again,
+    // invert B back, invert A back, combine
+    tree_a.invert();
     tree_a.clip_to(&tree_b);
     tree_b.clip_to(&tree_a);
     tree_b.invert();
-
+    tree_b.clip_to(&tree_a);
+    tree_b.invert();
+    tree_a.invert();
+    
     let mut result_polys = tree_a.all_polygons();
     result_polys.extend(tree_b.all_polygons());
 
@@ -337,3 +379,4 @@ mod tests {
         assert!(mesh.vertex_count() > 0);
     }
 }
+
