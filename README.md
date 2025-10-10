@@ -1,6 +1,6 @@
 # Polyframe Kernel
 
-[![CI](https://github.com/mihok/polyframe-kernel/actions/workflows/ci.yml/badge.svg)](https://github.com/mihok/polyframe-kernel/actions/workflows/ci.yml)
+[![CI](https://github.com/polyframe-ai/kernel/actions/workflows/ci.yml/badge.svg)](https://github.com/polyframe-ai/kernel/actions/workflows/ci.yml)
 [![Crates.io](https://img.shields.io/crates/v/polyframe.svg)](https://crates.io/crates/polyframe)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](./LICENSE)
 
@@ -217,8 +217,8 @@ Polyframe Kernel achieves significant performance improvements over OpenSCAD:
 ### Building from Source
 
 ```bash
-git clone https://github.com/mihok/polyframe-kernel.git
-cd polyframe-kernel
+git clone https://github.com/polyframe-ai/kernel.git
+cd kernel
 cargo build
 ```
 
@@ -283,7 +283,7 @@ Contributions are welcome! Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for g
 ## 📞 Support
 
 For issues, questions, or contributions, please visit:
-- GitHub Issues: https://github.com/mihok/polyframe-kernel/issues
+- GitHub Issues: https://github.com/polyframe-ai/kernel/issues
 - Documentation: https://docs.rs/polyframe
 
 ---

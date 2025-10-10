@@ -49,6 +49,19 @@ pub enum NodeKind {
     Empty,
 }
 
+impl NodeKind {
+    /// Get child nodes for dependency tracking
+    pub fn get_children(&self) -> Vec<&Node> {
+        match self {
+            NodeKind::Union(children) => children.iter().collect(),
+            NodeKind::Difference(children) => children.iter().collect(),
+            NodeKind::Intersection(children) => children.iter().collect(),
+            NodeKind::Transform { children, .. } => children.iter().collect(),
+            _ => Vec::new(),
+        }
+    }
+}
+
 /// Transformation operations
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum TransformOp {

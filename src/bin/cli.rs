@@ -4,7 +4,7 @@
 //! Polyframe Kernel CLI
 
 use clap::{Parser, Subcommand};
-use polyframe::{render_file, io};
+use polyframe::io;
 use anyhow::Result;
 use std::path::Path;
 
@@ -46,6 +46,18 @@ enum Commands {
         /// Output format
         #[arg(short, long, default_value = "stl")]
         format: String,
+        
+        /// Lazy rendering mode (defer rendering until explicitly requested)
+        #[arg(long)]
+        lazy: bool,
+        
+        /// Use parallel evaluation
+        #[arg(long)]
+        parallel: bool,
+        
+        /// Use incremental evaluation
+        #[arg(long)]
+        incremental: bool,
     },
     
     /// Compare Polyframe output with OpenSCAD
@@ -88,8 +100,8 @@ fn main() -> Result<()> {
     let cli = Cli::parse();
 
     match &cli.command {
-        Some(Commands::Render { input, output, format }) => {
-            render_command(input, output, format, cli.verbose)?;
+        Some(Commands::Render { input, output, format, lazy, parallel, incremental }) => {
+            render_command(input, output, format, *lazy, *parallel, *incremental, cli.verbose)?;
         }
         Some(Commands::Compare { inputs, tolerance }) => {
             compare_command(inputs, *tolerance, cli.verbose)?;
@@ -106,7 +118,7 @@ fn main() -> Result<()> {
         None => {
             // Default behavior: render input to output
             if let (Some(input), Some(output)) = (&cli.input, &cli.output) {
-                render_command(input, output, &cli.format, cli.verbose)?;
+                render_command(input, output, &cli.format, false, false, false, cli.verbose)?;
             } else {
                 eprintln!("Error: Input and output files required");
                 eprintln!("Usage: polyframe-kernel <INPUT> --output <OUTPUT>");
@@ -118,9 +130,26 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn render_command(input: &str, output: &str, format: &str, verbose: bool) -> Result<()> {
+fn render_command(
+    input: &str, 
+    output: &str, 
+    format: &str, 
+    lazy: bool,
+    parallel: bool,
+    incremental: bool,
+    verbose: bool
+) -> Result<()> {
     if verbose {
         println!("Rendering: {}", input);
+        if lazy {
+            println!("  Mode: Lazy (deferred rendering)");
+        }
+        if parallel {
+            println!("  Mode: Parallel evaluation");
+        }
+        if incremental {
+            println!("  Mode: Incremental evaluation");
+        }
     }
 
     // Check if input file exists
@@ -129,15 +158,54 @@ fn render_command(input: &str, output: &str, format: &str, verbose: bool) -> Res
         std::process::exit(1);
     }
 
-    // Render the mesh
+    // Parse AST
     let start = std::time::Instant::now();
-    let mesh = render_file(input)?;
-    let render_time = start.elapsed();
+    let ast = io::import_scad_file(input)?;
+    let parse_time = start.elapsed();
+
+    if verbose {
+        println!("Parsed in {:.2?}", parse_time);
+    }
+
+    // Choose evaluator based on flags
+    let render_start = std::time::Instant::now();
+    let mesh = if incremental {
+        // Use incremental evaluator
+        use polyframe::IncrementalEvaluator;
+        let evaluator = IncrementalEvaluator::from_ast(&ast);
+        let result = evaluator.evaluate(&ast)?;
+        
+        if verbose {
+            let stats = evaluator.cache_stats();
+            println!("Cache stats: {}/{} nodes cached ({:.1}% hit rate)", 
+                stats.cached_nodes, stats.total_nodes, stats.hit_rate());
+        }
+        
+        result
+    } else if parallel {
+        // Use parallel evaluator
+        use polyframe::ast::ParallelEvaluator;
+        ParallelEvaluator::evaluate(&ast)?
+    } else {
+        // Use standard evaluator
+        let evaluator = polyframe::ast::Evaluator::new();
+        evaluator.evaluate(&ast)?
+    };
+    
+    let render_time = render_start.elapsed();
 
     if verbose {
         println!("Rendered in {:.2?}", render_time);
         println!("Vertices: {}", mesh.vertex_count());
         println!("Triangles: {}", mesh.triangle_count());
+    }
+
+    // Lazy mode: skip export if flag is set
+    if lazy {
+        if verbose {
+            println!("Lazy mode: Skipping export (mesh kept in memory)");
+        }
+        return Ok(());
     }
 
     // Export based on format

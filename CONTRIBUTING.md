@@ -14,8 +14,8 @@ Thanks for your interest in contributing to Polyframe Kernel! We welcome issues,
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/mihok/polyframe-kernel.git
-   cd polyframe-kernel
+   git clone https://github.com/polyframe-ai/kernel.git
+   cd kernel
    ```
 
 2. Build the project:

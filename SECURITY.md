@@ -2,7 +2,7 @@
 
 ## Reporting Security Issues
 
-Please report security issues privately to **security@mihoksystems.com**.
+Please report security issues privately to **security@polyframe.ai**.
 
 We will acknowledge your report within **72 hours** and work with you to understand and address the issue.
 

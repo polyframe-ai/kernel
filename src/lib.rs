@@ -12,13 +12,16 @@ pub mod io;
 pub mod utils;
 pub mod cli;
 pub mod evaluation;
+pub mod kernel;
+pub mod benchmark_metrics;
 
 #[cfg(feature = "wasm")]
 pub mod ffi;
 
-pub use ast::{Node, NodeKind, TransformOp};
+pub use ast::{Node, NodeKind, TransformOp, IncrementalEvaluator, NodeId, CacheStats, ParallelEvaluator};
 pub use geometry::{Mesh, Primitive};
 pub use io::{parse_scad, import_scad_file, export_stl, export_3mf, export_gltf};
+pub use kernel::Kernel;
 
 use anyhow::Result;
 
