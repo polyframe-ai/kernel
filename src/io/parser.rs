@@ -15,19 +15,22 @@ struct ScadParser;
 
 /// Parse OpenSCAD source code into an AST
 pub fn parse_scad(source: &str) -> Result<Node> {
-    let pairs = ScadParser::parse(Rule::program, source).context("Failed to parse SCAD source")?;
+    let mut pairs = ScadParser::parse(Rule::program, source).context("Failed to parse SCAD source")?;
 
     let mut statements = Vec::new();
 
-    for pair in pairs {
-        match pair.as_rule() {
-            Rule::statement => {
-                if let Some(node) = parse_statement(pair)? {
-                    statements.push(node);
+    // Get the program node and iterate over its children
+    if let Some(program) = pairs.next() {
+        for pair in program.into_inner() {
+            match pair.as_rule() {
+                Rule::statement => {
+                    if let Some(node) = parse_statement(pair)? {
+                        statements.push(node);
+                    }
                 }
+                Rule::EOI => {}
+                _ => {}
             }
-            Rule::EOI => {}
-            _ => {}
         }
     }
 
