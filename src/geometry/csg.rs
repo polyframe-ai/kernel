@@ -324,7 +324,7 @@ pub fn csg_difference(a: &Mesh, b: &Mesh) -> Result<Mesh> {
     tree_b.clip_to(&tree_a);
     tree_b.invert();
     tree_a.invert();
-    
+
     let mut result_polys = tree_a.all_polygons();
     result_polys.extend(tree_b.all_polygons());
 
@@ -379,4 +379,3 @@ mod tests {
         assert!(mesh.vertex_count() > 0);
     }
 }
-
