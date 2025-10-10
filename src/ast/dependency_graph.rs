@@ -46,12 +46,12 @@ impl DependencyGraph {
             if let Some(pid) = parent_id {
                 self.children
                     .entry(pid.clone())
-                    .or_insert_with(Vec::new)
+                    .or_default()
                     .push(node_id.clone());
 
                 self.parents
                     .entry(node_id.clone())
-                    .or_insert_with(Vec::new)
+                    .or_default()
                     .push(pid.clone());
             }
 

@@ -158,7 +158,6 @@ pub fn batch_compare(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::path::PathBuf;
 
     #[test]
     fn test_compare_availability_check() {

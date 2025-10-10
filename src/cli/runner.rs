@@ -18,6 +18,7 @@ pub struct RenderResult {
 
 /// Runner for executing rendering operations
 pub struct Runner {
+    #[allow(dead_code)]
     timeout: Option<Duration>,
 }
 

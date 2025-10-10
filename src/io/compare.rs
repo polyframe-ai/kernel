@@ -66,6 +66,7 @@ pub fn compare_meshes(mesh_a: &Mesh, mesh_b: &Mesh, tolerance: f32) -> MeshCompa
 }
 
 /// Compare triangle count with percentage tolerance
+#[allow(dead_code)]
 pub fn compare_triangle_count_with_tolerance(
     mesh_a: &Mesh,
     mesh_b: &Mesh,

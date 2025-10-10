@@ -39,6 +39,7 @@ pub fn perform_boolean_operation(mesh_a: &Mesh, mesh_b: &Mesh, op: BooleanOp) ->
 }
 
 /// Convert Mesh to parry3d TriMesh
+#[allow(dead_code)]
 fn mesh_to_trimesh(mesh: &Mesh) -> TriMesh {
     let vertices: Vec<Point3<f32>> = mesh.vertices.iter().map(|v| v.position).collect();
 
@@ -58,6 +59,7 @@ fn mesh_to_trimesh(mesh: &Mesh) -> TriMesh {
 }
 
 /// Convert parry3d TriMesh to Mesh
+#[allow(dead_code)]
 fn trimesh_to_mesh(trimesh: &TriMesh) -> Mesh {
     let mut mesh = Mesh::new();
 

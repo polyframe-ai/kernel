@@ -207,7 +207,9 @@ struct Params {
 enum Value {
     Number(f32),
     Vector(Vec3),
+    #[allow(dead_code)]
     String(String),
+    #[allow(dead_code)]
     Boolean(bool),
 }
 

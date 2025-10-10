@@ -68,7 +68,7 @@ fn test_report_generation() {
     use tempfile::TempDir;
 
     // Create a test report
-    let mut report = evaluation::reporter::EvaluationReport::new();
+    let report = evaluation::reporter::EvaluationReport::new();
 
     // Simulate adding a result
     // (in real test, this would come from run_and_compare)

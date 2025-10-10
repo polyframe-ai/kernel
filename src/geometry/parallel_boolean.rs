@@ -27,7 +27,7 @@ impl ParallelBooleanExecutor {
 
         // Parallel reduce using rayon
         let result = meshes.into_par_iter().reduce(
-            || Mesh::empty(),
+            Mesh::empty,
             |acc, mesh| {
                 if acc.vertex_count() == 0 {
                     mesh

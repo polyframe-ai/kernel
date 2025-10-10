@@ -71,7 +71,7 @@ pub fn load_dataset(source: DatasetSource) -> Result<Vec<ModelTask>> {
 
 /// Detect dataset source from path
 pub fn detect_source(path: &Path) -> DatasetSource {
-    if path.is_file() && path.extension().map_or(false, |ext| ext == "json") {
+    if path.is_file() && path.extension().is_some_and(|ext| ext == "json") {
         DatasetSource::JsonFile(path.to_path_buf())
     } else {
         DatasetSource::Folder(path.to_path_buf())
@@ -82,7 +82,7 @@ pub fn detect_source(path: &Path) -> DatasetSource {
 fn discover_scad_files(path: &Path) -> Result<Vec<ModelTask>> {
     let mut models = Vec::new();
 
-    if path.is_file() && path.extension().map_or(false, |ext| ext == "scad") {
+    if path.is_file() && path.extension().is_some_and(|ext| ext == "scad") {
         models.push(ModelTask::FromFile(path.to_path_buf()));
     } else if path.is_dir() {
         for entry in WalkDir::new(path)
@@ -91,14 +91,14 @@ fn discover_scad_files(path: &Path) -> Result<Vec<ModelTask>> {
             .filter_map(|e| e.ok())
         {
             let entry_path = entry.path();
-            if entry_path.is_file() && entry_path.extension().map_or(false, |ext| ext == "scad") {
+            if entry_path.is_file() && entry_path.extension().is_some_and(|ext| ext == "scad") {
                 models.push(ModelTask::FromFile(entry_path.to_path_buf()));
             }
         }
     }
 
     // Sort for consistent ordering
-    models.sort_by(|a, b| a.name().cmp(&b.name()));
+    models.sort_by_key(|a| a.name());
 
     Ok(models)
 }
@@ -119,7 +119,7 @@ pub fn discover_models(paths: &[PathBuf]) -> Result<Vec<PathBuf>> {
     let mut models = Vec::new();
 
     for path in paths {
-        if path.is_file() && path.extension().map_or(false, |ext| ext == "scad") {
+        if path.is_file() && path.extension().is_some_and(|ext| ext == "scad") {
             models.push(path.clone());
         } else if path.is_dir() {
             for entry in WalkDir::new(path)
@@ -128,7 +128,7 @@ pub fn discover_models(paths: &[PathBuf]) -> Result<Vec<PathBuf>> {
                 .filter_map(|e| e.ok())
             {
                 let entry_path = entry.path();
-                if entry_path.is_file() && entry_path.extension().map_or(false, |ext| ext == "scad")
+                if entry_path.is_file() && entry_path.extension().is_some_and(|ext| ext == "scad")
                 {
                     models.push(entry_path.to_path_buf());
                 }

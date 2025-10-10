@@ -144,7 +144,6 @@ pub fn run_and_compare(file: &Path) -> Result<EvaluationResult> {
 
 /// Run model task (supports both file and JSON sources)
 pub fn run_model_task(task: &super::dataset::ModelTask) -> Result<EvaluationResult> {
-    use super::dataset::ModelTask;
 
     let name = task.name();
     let source = task.source()?;
