@@ -65,7 +65,7 @@ impl MeshDiff {
         // Note: Polyframe and OpenSCAD use different tessellation strategies for spheres/cylinders
         // This can result in 2× vertex count differences while maintaining geometric accuracy
         let is_tessellation_diff = vertex_delta > 0.40 && bbox_delta < 0.15;
-        
+
         let vertex_tolerance = if is_tessellation_diff {
             // Large vertex difference but small bbox difference suggests different tessellation
             0.60 // Allow up to 60% vertex count difference
