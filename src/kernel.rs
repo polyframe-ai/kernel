@@ -3,7 +3,7 @@
 
 //! Kernel API for incremental rendering
 
-use crate::ast::{Node, IncrementalEvaluator, NodeId, CacheStats};
+use crate::ast::{CacheStats, IncrementalEvaluator, Node, NodeId};
 use crate::geometry::Mesh;
 use anyhow::Result;
 
@@ -68,9 +68,9 @@ impl Kernel {
 
         // Search in children
         match &mut node.kind {
-            crate::ast::NodeKind::Union(children) |
-            crate::ast::NodeKind::Difference(children) |
-            crate::ast::NodeKind::Intersection(children) => {
+            crate::ast::NodeKind::Union(children)
+            | crate::ast::NodeKind::Difference(children)
+            | crate::ast::NodeKind::Intersection(children) => {
                 for child in children.iter_mut() {
                     if Self::update_node_in_ast_static(child, target_id, updated_node) {
                         return true;
@@ -125,10 +125,7 @@ mod tests {
 
     #[test]
     fn test_kernel_basic_render() {
-        let ast = Node::with_id(
-            NodeKind::Cube(Vec3::new(10.0, 10.0, 10.0)),
-            "cube1".into()
-        );
+        let ast = Node::with_id(NodeKind::Cube(Vec3::new(10.0, 10.0, 10.0)), "cube1".into());
 
         let kernel = Kernel::with_ast(ast);
         let mesh = kernel.render().unwrap();
@@ -137,30 +134,22 @@ mod tests {
 
     #[test]
     fn test_kernel_update_subtree() {
-        let child = Node::with_id(
-            NodeKind::Cube(Vec3::new(10.0, 10.0, 10.0)),
-            "child1".into()
-        );
-        let root = Node::with_id(
-            NodeKind::Union(vec![child]),
-            "root".into()
-        );
+        let child = Node::with_id(NodeKind::Cube(Vec3::new(10.0, 10.0, 10.0)), "child1".into());
+        let root = Node::with_id(NodeKind::Union(vec![child]), "root".into());
 
         let mut kernel = Kernel::with_ast(root);
-        
+
         // First render
         let mesh1 = kernel.render().unwrap();
-        
+
         // Update subtree
-        let updated_child = Node::with_id(
-            NodeKind::Sphere { r: 15.0, fn_: 32 },
-            "child1".into()
-        );
-        
-        let mesh2 = kernel.update_subtree(&"child1".to_string(), updated_child).unwrap();
-        
+        let updated_child = Node::with_id(NodeKind::Sphere { r: 15.0, fn_: 32 }, "child1".into());
+
+        let mesh2 = kernel
+            .update_subtree(&"child1".to_string(), updated_child)
+            .unwrap();
+
         // Meshes should be different
         assert_ne!(mesh1.vertex_count(), mesh2.vertex_count());
     }
 }
-

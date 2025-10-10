@@ -88,7 +88,10 @@ impl MeshDiff {
     }
 
     /// Calculate distance between two bounding boxes
-    fn bbox_distance(bbox_a: &crate::geometry::BoundingBox, bbox_b: &crate::geometry::BoundingBox) -> f64 {
+    fn bbox_distance(
+        bbox_a: &crate::geometry::BoundingBox,
+        bbox_b: &crate::geometry::BoundingBox,
+    ) -> f64 {
         let min_dist = (bbox_a.min - bbox_b.min).norm();
         let max_dist = (bbox_a.max - bbox_b.max).norm();
 
@@ -139,4 +142,3 @@ mod tests {
         assert_eq!(MeshDiff::diff_ratio(0, 0), 0.0);
     }
 }
-

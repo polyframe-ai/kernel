@@ -4,4 +4,3 @@
 //! Utility modules
 
 pub mod math;
-

@@ -2,18 +2,17 @@
 // Copyright (c) 2025 Polyframe Inc.
 
 //! Abstract Syntax Tree module
-//! 
+//!
 //! Defines the AST structure for OpenSCAD-compatible operations
 
-mod node;
-mod evaluator;
 mod dependency_graph;
+mod evaluator;
 mod incremental_evaluator;
+mod node;
 mod parallel_evaluator;
 
-pub use node::{Node, NodeKind, TransformOp, Vec3};
-pub use evaluator::Evaluator;
 pub use dependency_graph::{DependencyGraph, NodeId};
-pub use incremental_evaluator::{IncrementalEvaluator, CacheStats, MeshCache};
+pub use evaluator::Evaluator;
+pub use incremental_evaluator::{CacheStats, IncrementalEvaluator, MeshCache};
+pub use node::{Node, NodeKind, TransformOp, Vec3};
 pub use parallel_evaluator::ParallelEvaluator;
-

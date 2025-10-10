@@ -3,11 +3,11 @@
 
 //! OpenSCAD parser using pest
 
+use crate::ast::{Node, NodeKind, TransformOp, Vec3};
+use anyhow::{anyhow, Context, Result};
+use nalgebra::Vector3;
 use pest::Parser;
 use pest_derive::Parser;
-use anyhow::{Result, anyhow, Context};
-use crate::ast::{Node, NodeKind, TransformOp, Vec3};
-use nalgebra::Vector3;
 
 #[derive(Parser)]
 #[grammar = "io/scad.pest"]
@@ -15,11 +15,10 @@ struct ScadParser;
 
 /// Parse OpenSCAD source code into an AST
 pub fn parse_scad(source: &str) -> Result<Node> {
-    let pairs = ScadParser::parse(Rule::program, source)
-        .context("Failed to parse SCAD source")?;
+    let pairs = ScadParser::parse(Rule::program, source).context("Failed to parse SCAD source")?;
 
     let mut statements = Vec::new();
-    
+
     for pair in pairs {
         match pair.as_rule() {
             Rule::statement => {
@@ -44,7 +43,9 @@ pub fn parse_scad(source: &str) -> Result<Node> {
 }
 
 fn parse_statement(pair: pest::iterators::Pair<Rule>) -> Result<Option<Node>> {
-    let inner = pair.into_inner().next()
+    let inner = pair
+        .into_inner()
+        .next()
         .ok_or_else(|| anyhow!("Empty statement"))?;
 
     match inner.as_rule() {
@@ -58,36 +59,36 @@ fn parse_statement(pair: pest::iterators::Pair<Rule>) -> Result<Option<Node>> {
 
 fn parse_primitive(pair: pest::iterators::Pair<Rule>) -> Result<Option<Node>> {
     let inner = pair.into_inner().next().unwrap();
-    
+
     match inner.as_rule() {
         Rule::cube_stmt => {
             let params = parse_params(inner)?;
-            let size = params.get_vector("size")
+            let size = params
+                .get_vector("size")
                 .or_else(|| params.get_positional_vector(0))
                 .unwrap_or(Vector3::new(1.0, 1.0, 1.0));
             Ok(Some(Node::new(NodeKind::Cube(size))))
         }
         Rule::sphere_stmt => {
             let params = parse_params(inner)?;
-            let r = params.get_number("r")
+            let r = params
+                .get_number("r")
                 .or_else(|| params.get_positional_number(0))
                 .unwrap_or(1.0);
-            let fn_ = params.get_number("$fn")
-                .map(|v| v as u32)
-                .unwrap_or(32);
+            let fn_ = params.get_number("$fn").map(|v| v as u32).unwrap_or(32);
             Ok(Some(Node::new(NodeKind::Sphere { r, fn_ })))
         }
         Rule::cylinder_stmt => {
             let params = parse_params(inner)?;
-            let h = params.get_number("h")
+            let h = params
+                .get_number("h")
                 .or_else(|| params.get_positional_number(0))
                 .unwrap_or(1.0);
-            let r = params.get_number("r")
+            let r = params
+                .get_number("r")
                 .or_else(|| params.get_positional_number(1))
                 .unwrap_or(1.0);
-            let fn_ = params.get_number("$fn")
-                .map(|v| v as u32)
-                .unwrap_or(32);
+            let fn_ = params.get_number("$fn").map(|v| v as u32).unwrap_or(32);
             Ok(Some(Node::new(NodeKind::Cylinder { h, r, fn_ })))
         }
         _ => Ok(None),
@@ -96,17 +97,18 @@ fn parse_primitive(pair: pest::iterators::Pair<Rule>) -> Result<Option<Node>> {
 
 fn parse_transform(pair: pest::iterators::Pair<Rule>) -> Result<Option<Node>> {
     let inner = pair.into_inner().next().unwrap();
-    
+
     match inner.as_rule() {
         Rule::translate_stmt => {
             let mut inner_pairs = inner.into_inner();
             let params = parse_params_from_list(inner_pairs.next().unwrap())?;
             let children = parse_block_or_stmt(inner_pairs.next().unwrap())?;
-            
-            let v = params.get_vector("v")
+
+            let v = params
+                .get_vector("v")
                 .or_else(|| params.get_positional_vector(0))
                 .unwrap_or(Vector3::zeros());
-            
+
             Ok(Some(Node::new(NodeKind::Transform {
                 op: TransformOp::Translate(v),
                 children,
@@ -116,11 +118,12 @@ fn parse_transform(pair: pest::iterators::Pair<Rule>) -> Result<Option<Node>> {
             let mut inner_pairs = inner.into_inner();
             let params = parse_params_from_list(inner_pairs.next().unwrap())?;
             let children = parse_block_or_stmt(inner_pairs.next().unwrap())?;
-            
-            let a = params.get_vector("a")
+
+            let a = params
+                .get_vector("a")
                 .or_else(|| params.get_positional_vector(0))
                 .unwrap_or(Vector3::zeros());
-            
+
             Ok(Some(Node::new(NodeKind::Transform {
                 op: TransformOp::Rotate(a),
                 children,
@@ -130,11 +133,12 @@ fn parse_transform(pair: pest::iterators::Pair<Rule>) -> Result<Option<Node>> {
             let mut inner_pairs = inner.into_inner();
             let params = parse_params_from_list(inner_pairs.next().unwrap())?;
             let children = parse_block_or_stmt(inner_pairs.next().unwrap())?;
-            
-            let v = params.get_vector("v")
+
+            let v = params
+                .get_vector("v")
                 .or_else(|| params.get_positional_vector(0))
                 .unwrap_or(Vector3::new(1.0, 1.0, 1.0));
-            
+
             Ok(Some(Node::new(NodeKind::Transform {
                 op: TransformOp::Scale(v),
                 children,
@@ -146,7 +150,7 @@ fn parse_transform(pair: pest::iterators::Pair<Rule>) -> Result<Option<Node>> {
 
 fn parse_boolean(pair: pest::iterators::Pair<Rule>) -> Result<Option<Node>> {
     let inner = pair.into_inner().next().unwrap();
-    
+
     match inner.as_rule() {
         Rule::union_stmt => {
             let block = inner.into_inner().next().unwrap();
@@ -169,13 +173,13 @@ fn parse_boolean(pair: pest::iterators::Pair<Rule>) -> Result<Option<Node>> {
 
 fn parse_block(pair: pest::iterators::Pair<Rule>) -> Result<Vec<Node>> {
     let mut nodes = Vec::new();
-    
+
     for stmt in pair.into_inner() {
         if let Some(node) = parse_statement(stmt)? {
             nodes.push(node);
         }
     }
-    
+
     Ok(nodes)
 }
 
@@ -255,11 +259,11 @@ fn parse_params(pair: pest::iterators::Pair<Rule>) -> Result<Params> {
 
 fn parse_params_from_list(pair: pest::iterators::Pair<Rule>) -> Result<Params> {
     let mut params = Params::new();
-    
+
     for param in pair.into_inner() {
         let mut param_inner = param.into_inner();
         let first = param_inner.next().unwrap();
-        
+
         if let Rule::ident = first.as_rule() {
             // Named parameter
             let name = first.as_str().to_string();
@@ -272,13 +276,13 @@ fn parse_params_from_list(pair: pest::iterators::Pair<Rule>) -> Result<Params> {
             params.positional.push(value);
         }
     }
-    
+
     Ok(params)
 }
 
 fn parse_expr(pair: pest::iterators::Pair<Rule>) -> Result<Value> {
     let inner = pair.into_inner().next().unwrap();
-    
+
     match inner.as_rule() {
         Rule::number => {
             let num: f32 = inner.as_str().parse()?;
@@ -293,14 +297,14 @@ fn parse_expr(pair: pest::iterators::Pair<Rule>) -> Result<Value> {
                     }
                 }
             }
-            
+
             let v = match values.len() {
                 1 => Vector3::new(values[0], values[0], values[0]),
                 2 => Vector3::new(values[0], values[1], 0.0),
                 3 => Vector3::new(values[0], values[1], values[2]),
                 _ => Vector3::zeros(),
             };
-            
+
             Ok(Value::Vector(v))
         }
         Rule::boolean => {
@@ -337,4 +341,3 @@ mod tests {
         assert!(result.is_ok());
     }
 }
-

@@ -4,8 +4,8 @@
 //! Dependency graph for incremental evaluation
 
 use super::Node;
-use std::collections::HashSet;
 use ahash::AHashMap;
+use std::collections::HashSet;
 
 /// Unique identifier for AST nodes
 pub type NodeId = String;
@@ -168,4 +168,3 @@ mod tests {
         assert_eq!(descendants.len(), 2);
     }
 }
-

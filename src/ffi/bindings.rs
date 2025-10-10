@@ -41,8 +41,7 @@ impl JsMesh {
     pub fn bounding_box(&self) -> Vec<f32> {
         let bbox = self.inner.bounding_box();
         vec![
-            bbox.min.x, bbox.min.y, bbox.min.z,
-            bbox.max.x, bbox.max.y, bbox.max.z,
+            bbox.min.x, bbox.min.y, bbox.min.z, bbox.max.x, bbox.max.y, bbox.max.z,
         ]
     }
 }
@@ -51,9 +50,9 @@ impl JsMesh {
 #[cfg(feature = "napi")]
 #[napi]
 pub fn render(source: String) -> Result<JsMesh> {
-    let mesh = crate::render(&source)
-        .map_err(|e| Error::from_reason(format!("Render error: {}", e)))?;
-    
+    let mesh =
+        crate::render(&source).map_err(|e| Error::from_reason(format!("Render error: {}", e)))?;
+
     Ok(JsMesh { inner: mesh })
 }
 
@@ -63,7 +62,7 @@ pub fn render(source: String) -> Result<JsMesh> {
 pub fn render_file(path: String) -> Result<JsMesh> {
     let mesh = crate::render_file(&path)
         .map_err(|e| Error::from_reason(format!("Render error: {}", e)))?;
-    
+
     Ok(JsMesh { inner: mesh })
 }
 
@@ -73,9 +72,8 @@ pub fn render_file(path: String) -> Result<JsMesh> {
 pub fn parse_scad(source: String) -> Result<String> {
     let ast = crate::io::parse_scad(&source)
         .map_err(|e| Error::from_reason(format!("Parse error: {}", e)))?;
-    
-    serde_json::to_string_pretty(&ast)
-        .map_err(|e| Error::from_reason(format!("JSON error: {}", e)))
+
+    serde_json::to_string_pretty(&ast).map_err(|e| Error::from_reason(format!("JSON error: {}", e)))
 }
 
 /// Get version
@@ -84,4 +82,3 @@ pub fn parse_scad(source: String) -> Result<String> {
 pub fn version() -> String {
     env!("CARGO_PKG_VERSION").to_string()
 }
-

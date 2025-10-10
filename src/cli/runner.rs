@@ -3,12 +3,12 @@
 
 //! Subprocess execution runner for OpenSCAD and Polyframe
 
-use anyhow::{Result, Context, bail};
-use std::process::Command;
-use std::path::Path;
-use std::time::{Duration, Instant};
 use crate::geometry::Mesh;
 use crate::io;
+use anyhow::{bail, Context, Result};
+use std::path::Path;
+use std::process::Command;
+use std::time::{Duration, Instant};
 
 /// Result of a render operation
 pub struct RenderResult {
@@ -27,7 +27,9 @@ impl Runner {
     }
 
     pub fn with_timeout(timeout: Duration) -> Self {
-        Self { timeout: Some(timeout) }
+        Self {
+            timeout: Some(timeout),
+        }
     }
 
     /// Run OpenSCAD to generate STL
@@ -37,7 +39,7 @@ impl Runner {
         }
 
         let start = Instant::now();
-        
+
         let status = Command::new("openscad")
             .arg("-o")
             .arg(output)
@@ -62,8 +64,7 @@ impl Runner {
             .context("Failed to render with Polyframe")?;
 
         // Export to STL
-        io::export_stl(&mesh, output.to_str().unwrap())
-            .context("Failed to export STL")?;
+        io::export_stl(&mesh, output.to_str().unwrap()).context("Failed to export STL")?;
 
         Ok(start.elapsed())
     }
@@ -82,33 +83,27 @@ impl Runner {
 
     /// Load STL file into mesh
     pub fn load_stl(&self, path: &Path) -> Result<Mesh> {
-        use stl_io::read_stl;
-        use std::fs::File;
+        use crate::geometry::{Triangle, Vertex};
         use nalgebra::{Point3, Vector3};
-        use crate::geometry::{Vertex, Triangle};
+        use std::fs::File;
+        use stl_io::read_stl;
 
-        let mut file = File::open(path)
-            .context(format!("Failed to open STL file: {:?}", path))?;
+        let mut file = File::open(path).context(format!("Failed to open STL file: {:?}", path))?;
 
-        let stl = read_stl(&mut file)
-            .context("Failed to read STL file")?;
+        let stl = read_stl(&mut file).context("Failed to read STL file")?;
 
         let mut mesh = Mesh::new();
 
         // stl_io returns an IndexedMesh with vertices and faces
         for face in &stl.faces {
             let vertices = &stl.vertices;
-            
+
             // Get the three vertices of this face
             let v0_pos = &vertices[face.vertices[0]];
             let v1_pos = &vertices[face.vertices[1]];
             let v2_pos = &vertices[face.vertices[2]];
-            
-            let normal = Vector3::new(
-                face.normal[0],
-                face.normal[1],
-                face.normal[2],
-            );
+
+            let normal = Vector3::new(face.normal[0], face.normal[1], face.normal[2]);
 
             let v0 = mesh.add_vertex(Vertex::new(
                 Point3::new(v0_pos[0], v0_pos[1], v0_pos[2]),
@@ -133,10 +128,7 @@ impl Runner {
 
     /// Check if OpenSCAD is available
     pub fn is_openscad_available(&self) -> bool {
-        Command::new("openscad")
-            .arg("--version")
-            .output()
-            .is_ok()
+        Command::new("openscad").arg("--version").output().is_ok()
     }
 }
 
@@ -163,4 +155,3 @@ mod tests {
         let _ = runner.is_openscad_available();
     }
 }
-

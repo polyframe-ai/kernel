@@ -8,4 +8,3 @@ pub mod wasm;
 
 #[cfg(feature = "napi")]
 pub mod bindings;
-

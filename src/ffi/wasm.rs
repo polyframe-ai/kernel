@@ -3,8 +3,8 @@
 
 //! WASM bindings using wasm-bindgen
 
+use crate::{io, render};
 use wasm_bindgen::prelude::*;
-use crate::{render, io};
 
 #[wasm_bindgen]
 pub struct WasmMesh {
@@ -26,34 +26,39 @@ impl WasmMesh {
     /// Export to STL format (returns binary data)
     pub fn to_stl(&self) -> Result<Vec<u8>, JsValue> {
         let mut buffer = Vec::new();
-        
+
         // Write to buffer
         use std::io::Cursor;
         let mut cursor = Cursor::new(&mut buffer);
-        
+
         // Use stl_io to write
-        use stl_io::{Triangle as StlTriangle, Normal, Vertex as StlVertex};
-        
-        let triangles: Vec<StlTriangle> = self.inner.triangles.iter().map(|tri| {
-            let v0 = &self.inner.vertices[tri.indices[0]];
-            let v1 = &self.inner.vertices[tri.indices[1]];
-            let v2 = &self.inner.vertices[tri.indices[2]];
-            
-            let normal = (v0.normal + v1.normal + v2.normal) / 3.0;
-            
-            StlTriangle {
-                normal: Normal::new([normal.x, normal.y, normal.z]),
-                vertices: [
-                    StlVertex::new([v0.position.x, v0.position.y, v0.position.z]),
-                    StlVertex::new([v1.position.x, v1.position.y, v1.position.z]),
-                    StlVertex::new([v2.position.x, v2.position.y, v2.position.z]),
-                ],
-            }
-        }).collect();
-        
+        use stl_io::{Normal, Triangle as StlTriangle, Vertex as StlVertex};
+
+        let triangles: Vec<StlTriangle> = self
+            .inner
+            .triangles
+            .iter()
+            .map(|tri| {
+                let v0 = &self.inner.vertices[tri.indices[0]];
+                let v1 = &self.inner.vertices[tri.indices[1]];
+                let v2 = &self.inner.vertices[tri.indices[2]];
+
+                let normal = (v0.normal + v1.normal + v2.normal) / 3.0;
+
+                StlTriangle {
+                    normal: Normal::new([normal.x, normal.y, normal.z]),
+                    vertices: [
+                        StlVertex::new([v0.position.x, v0.position.y, v0.position.z]),
+                        StlVertex::new([v1.position.x, v1.position.y, v1.position.z]),
+                        StlVertex::new([v2.position.x, v2.position.y, v2.position.z]),
+                    ],
+                }
+            })
+            .collect();
+
         stl_io::write_stl(&mut cursor, triangles.iter())
             .map_err(|e| JsValue::from_str(&format!("STL export error: {}", e)))?;
-        
+
         Ok(buffer)
     }
 }
@@ -61,18 +66,17 @@ impl WasmMesh {
 /// Parse and render SCAD source code
 #[wasm_bindgen]
 pub fn render_scad(source: &str) -> Result<WasmMesh, JsValue> {
-    let mesh = render(source)
-        .map_err(|e| JsValue::from_str(&format!("Render error: {}", e)))?;
-    
+    let mesh = render(source).map_err(|e| JsValue::from_str(&format!("Render error: {}", e)))?;
+
     Ok(WasmMesh { inner: mesh })
 }
 
 /// Parse SCAD source code and return JSON AST
 #[wasm_bindgen]
 pub fn parse_scad_to_json(source: &str) -> Result<String, JsValue> {
-    let ast = io::parse_scad(source)
-        .map_err(|e| JsValue::from_str(&format!("Parse error: {}", e)))?;
-    
+    let ast =
+        io::parse_scad(source).map_err(|e| JsValue::from_str(&format!("Parse error: {}", e)))?;
+
     serde_json::to_string_pretty(&ast)
         .map_err(|e| JsValue::from_str(&format!("JSON serialization error: {}", e)))
 }
@@ -93,4 +97,3 @@ mod tests {
         assert!(result.is_ok());
     }
 }
-

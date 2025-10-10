@@ -3,9 +3,9 @@
 
 //! Polyframe Kernel CLI
 
+use anyhow::Result;
 use clap::{Parser, Subcommand};
 use polyframe::io;
-use anyhow::Result;
 use std::path::Path;
 
 #[derive(Parser)]
@@ -14,19 +14,19 @@ use std::path::Path;
 struct Cli {
     #[command(subcommand)]
     command: Option<Commands>,
-    
+
     /// Input SCAD file
     #[arg(value_name = "FILE")]
     input: Option<String>,
-    
+
     /// Output file
     #[arg(short, long, value_name = "FILE")]
     output: Option<String>,
-    
+
     /// Output format (stl, 3mf, gltf)
     #[arg(short, long, default_value = "stl")]
     format: String,
-    
+
     /// Verbose output
     #[arg(short, long)]
     verbose: bool,
@@ -38,60 +38,60 @@ enum Commands {
     Render {
         /// Input SCAD file
         input: String,
-        
+
         /// Output file
         #[arg(short, long)]
         output: String,
-        
+
         /// Output format
         #[arg(short, long, default_value = "stl")]
         format: String,
-        
+
         /// Lazy rendering mode (defer rendering until explicitly requested)
         #[arg(long)]
         lazy: bool,
-        
+
         /// Use parallel evaluation
         #[arg(long)]
         parallel: bool,
-        
+
         /// Use incremental evaluation
         #[arg(long)]
         incremental: bool,
     },
-    
+
     /// Compare Polyframe output with OpenSCAD
     Compare {
         /// Input SCAD file(s)
         #[arg(required = true)]
         inputs: Vec<String>,
-        
+
         /// Comparison tolerance
         #[arg(short, long, default_value = "0.00001")]
         tolerance: f32,
     },
-    
+
     /// Run evaluation harness on dataset
     Eval {
         /// Dataset directory or file(s)
         #[arg(required = true)]
         dataset: Vec<String>,
-        
+
         /// Output directory for results
         #[arg(short, long, default_value = "evaluation/results")]
         out: String,
     },
-    
+
     /// Parse SCAD file and output AST as JSON
     Parse {
         /// Input SCAD file
         input: String,
-        
+
         /// Output JSON file
         #[arg(short, long)]
         output: Option<String>,
     },
-    
+
     /// Show version information
     Version,
 }
@@ -100,8 +100,23 @@ fn main() -> Result<()> {
     let cli = Cli::parse();
 
     match &cli.command {
-        Some(Commands::Render { input, output, format, lazy, parallel, incremental }) => {
-            render_command(input, output, format, *lazy, *parallel, *incremental, cli.verbose)?;
+        Some(Commands::Render {
+            input,
+            output,
+            format,
+            lazy,
+            parallel,
+            incremental,
+        }) => {
+            render_command(
+                input,
+                output,
+                format,
+                *lazy,
+                *parallel,
+                *incremental,
+                cli.verbose,
+            )?;
         }
         Some(Commands::Compare { inputs, tolerance }) => {
             compare_command(inputs, *tolerance, cli.verbose)?;
@@ -131,13 +146,13 @@ fn main() -> Result<()> {
 }
 
 fn render_command(
-    input: &str, 
-    output: &str, 
-    format: &str, 
+    input: &str,
+    output: &str,
+    format: &str,
     lazy: bool,
     parallel: bool,
     incremental: bool,
-    verbose: bool
+    verbose: bool,
 ) -> Result<()> {
     if verbose {
         println!("Rendering: {}", input);
@@ -174,13 +189,17 @@ fn render_command(
         use polyframe::IncrementalEvaluator;
         let evaluator = IncrementalEvaluator::from_ast(&ast);
         let result = evaluator.evaluate(&ast)?;
-        
+
         if verbose {
             let stats = evaluator.cache_stats();
-            println!("Cache stats: {}/{} nodes cached ({:.1}% hit rate)", 
-                stats.cached_nodes, stats.total_nodes, stats.hit_rate());
+            println!(
+                "Cache stats: {}/{} nodes cached ({:.1}% hit rate)",
+                stats.cached_nodes,
+                stats.total_nodes,
+                stats.hit_rate()
+            );
         }
-        
+
         result
     } else if parallel {
         // Use parallel evaluator
@@ -191,7 +210,7 @@ fn render_command(
         let evaluator = polyframe::ast::Evaluator::new();
         evaluator.evaluate(&ast)?
     };
-    
+
     let render_time = render_start.elapsed();
 
     if verbose {
@@ -233,73 +252,79 @@ fn render_command(
 }
 
 fn compare_command(inputs: &[String], tolerance: f32, verbose: bool) -> Result<()> {
-    use polyframe::cli::{compare_with_openscad, batch_compare, Reporter};
-    
+    use polyframe::cli::{batch_compare, compare_with_openscad, Reporter};
+
     if inputs.len() == 1 {
         // Single file comparison
         let input = Path::new(&inputs[0]);
-        
+
         if !input.exists() {
             Reporter::report_error(&format!("Input file not found: {}", inputs[0]));
             std::process::exit(1);
         }
-        
+
         let result = compare_with_openscad(input, tolerance, verbose)?;
-        
+
         if !result.passed {
             std::process::exit(1);
         }
     } else {
         // Batch comparison
-        let paths: Vec<&Path> = inputs.iter()
-            .map(|s| Path::new(s.as_str()))
-            .collect();
-        
+        let paths: Vec<&Path> = inputs.iter().map(|s| Path::new(s.as_str())).collect();
+
         let results = batch_compare(&paths, tolerance, verbose)?;
-        
+
         let failed = results.iter().filter(|(_, r)| !r.passed).count();
         if failed > 0 {
             std::process::exit(1);
         }
     }
-    
+
     Ok(())
 }
 
 fn eval_command(dataset: &[String], out: &str, verbose: bool) -> Result<()> {
-    use polyframe::evaluation;
     use colored::Colorize;
     use indicatif::{ProgressBar, ProgressStyle};
-    
+    use polyframe::evaluation;
+
     if verbose {
         println!("{}", "Starting evaluation harness...".bold());
     }
-    
+
     // Load tasks from all dataset sources
     let mut all_tasks = Vec::new();
-    
+
     for dataset_path in dataset {
         let path = std::path::PathBuf::from(dataset_path);
-        
+
         if !path.exists() {
             eprintln!("{} Path not found: {}", "Error:".red(), dataset_path);
             continue;
         }
-        
+
         // Detect source type (JSON or folder)
         let source = evaluation::detect_source(&path);
-        
+
         if verbose {
             match &source {
                 evaluation::DatasetSource::JsonFile(_) => {
-                    println!("{} Loading JSON exercises from {}", "ℹ".bright_blue(), dataset_path);
+                    println!(
+                        "{} Loading JSON exercises from {}",
+                        "ℹ".bright_blue(),
+                        dataset_path
+                    );
                 }
                 evaluation::DatasetSource::Folder(_) => {
-                    println!("{} Discovering .scad files in {}", "ℹ".bright_blue(), dataset_path);
+                    println!(
+                        "{} Discovering .scad files in {}",
+                        "ℹ".bright_blue(),
+                        dataset_path
+                    );
                 }
             }
         }
-        
+
         match evaluation::load_dataset(source) {
             Ok(tasks) => {
                 if verbose {
@@ -308,41 +333,50 @@ fn eval_command(dataset: &[String], out: &str, verbose: bool) -> Result<()> {
                 all_tasks.extend(tasks);
             }
             Err(e) => {
-                eprintln!("{} Failed to load dataset {}: {}", "Error:".red(), dataset_path, e);
+                eprintln!(
+                    "{} Failed to load dataset {}: {}",
+                    "Error:".red(),
+                    dataset_path,
+                    e
+                );
             }
         }
     }
-    
+
     if all_tasks.is_empty() {
         eprintln!("{}", "No tasks found in dataset(s)".red());
         std::process::exit(1);
     }
-    
+
     if verbose {
         println!("Total tasks to evaluate: {}", all_tasks.len());
     }
-    
+
     // Create progress bar
     let progress = if verbose {
         let pb = ProgressBar::new(all_tasks.len() as u64);
-        pb.set_style(ProgressStyle::default_bar()
-            .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} ({eta})")
-            .unwrap()
-            .progress_chars("#>-"));
+        pb.set_style(
+            ProgressStyle::default_bar()
+                .template(
+                    "{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} ({eta})",
+                )
+                .unwrap()
+                .progress_chars("#>-"),
+        );
         Some(pb)
     } else {
         None
     };
-    
+
     // Run evaluation
     let output_dir = std::path::PathBuf::from(out);
     let mut report = evaluation::reporter::EvaluationReport::new();
-    
+
     for task in &all_tasks {
         if let Some(ref pb) = progress {
             pb.set_message(format!("Evaluating {}", task.name()));
         }
-        
+
         match evaluation::run_model_task(task) {
             Ok(result) => {
                 report.add_result(result);
@@ -355,46 +389,66 @@ fn eval_command(dataset: &[String], out: &str, verbose: bool) -> Result<()> {
                 report.add_error(task.name(), e.to_string());
             }
         }
-        
+
         if let Some(ref pb) = progress {
             pb.inc(1);
         }
     }
-    
+
     if let Some(pb) = progress {
         pb.finish_with_message("Evaluation complete");
     }
-    
+
     // Write reports
     std::fs::create_dir_all(&output_dir)?;
     evaluation::Reporter::write_json(&report, &output_dir.join("latest.json"))?;
     evaluation::Reporter::write_markdown(&report, &output_dir.join("report.md"))?;
-    
+
     // Print summary
     println!("\n{}", "═".repeat(80).bright_black());
     println!("{}", "Evaluation Summary".bold());
     println!("{}", "═".repeat(80).bright_black());
-    println!("  {} {}", "Total Models:".bright_black(), report.total_models.to_string().cyan());
-    println!("  {} {} ({:.1}%)", 
-        "Passed:".bright_black(), 
+    println!(
+        "  {} {}",
+        "Total Models:".bright_black(),
+        report.total_models.to_string().cyan()
+    );
+    println!(
+        "  {} {} ({:.1}%)",
+        "Passed:".bright_black(),
         report.passed.to_string().green(),
         report.pass_rate()
     );
-    println!("  {} {}", 
-        "Failed:".bright_black(), 
-        if report.failed > 0 { report.failed.to_string().red() } else { report.failed.to_string().green() }
+    println!(
+        "  {} {}",
+        "Failed:".bright_black(),
+        if report.failed > 0 {
+            report.failed.to_string().red()
+        } else {
+            report.failed.to_string().green()
+        }
     );
-    println!("  {} {}", 
-        "Errors:".bright_black(), 
-        if report.errors > 0 { report.errors.to_string().red() } else { report.errors.to_string().green() }
+    println!(
+        "  {} {}",
+        "Errors:".bright_black(),
+        if report.errors > 0 {
+            report.errors.to_string().red()
+        } else {
+            report.errors.to_string().green()
+        }
     );
-    println!("  {} {} ({:.1}% success)", 
+    println!(
+        "  {} {} ({:.1}% success)",
         "Success Rate:".bright_black(),
         (report.total_models - report.errors).to_string().cyan(),
         report.success_rate()
     );
-    println!("  {} {}", "Avg Speedup:".bright_black(), format!("{:.1}×", report.avg_speedup).yellow());
-    
+    println!(
+        "  {} {}",
+        "Avg Speedup:".bright_black(),
+        format!("{:.1}×", report.avg_speedup).yellow()
+    );
+
     if report.errors > 0 && verbose {
         println!("\n  {}", "Errors:".red().bold());
         for err in &report.error_details {
@@ -402,15 +456,23 @@ fn eval_command(dataset: &[String], out: &str, verbose: bool) -> Result<()> {
             println!("       {}", err.error.bright_black());
         }
     }
-    
-    println!("\n  {} {}", "JSON Report:".bright_black(), output_dir.join("latest.json").display().to_string().cyan());
-    println!("  {} {}", "Markdown Report:".bright_black(), output_dir.join("report.md").display().to_string().cyan());
+
+    println!(
+        "\n  {} {}",
+        "JSON Report:".bright_black(),
+        output_dir.join("latest.json").display().to_string().cyan()
+    );
+    println!(
+        "  {} {}",
+        "Markdown Report:".bright_black(),
+        output_dir.join("report.md").display().to_string().cyan()
+    );
     println!("{}", "═".repeat(80).bright_black());
-    
+
     if report.failed > 0 || report.errors > 0 {
         std::process::exit(1);
     }
-    
+
     Ok(())
 }
 
@@ -441,4 +503,3 @@ fn parse_command(input: &str, output: Option<&str>, verbose: bool) -> Result<()>
 
     Ok(())
 }
-

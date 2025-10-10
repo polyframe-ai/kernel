@@ -3,7 +3,7 @@
 
 //! Parallel boolean operations using rayon
 
-use super::{Mesh, BooleanOp};
+use super::{BooleanOp, Mesh};
 use anyhow::Result;
 use rayon::prelude::*;
 use std::sync::{Arc, RwLock};
@@ -16,10 +16,7 @@ pub struct ParallelBooleanExecutor;
 
 impl ParallelBooleanExecutor {
     /// Perform parallel boolean operation on multiple meshes
-    pub fn execute_parallel(
-        meshes: Vec<Mesh>,
-        op: BooleanOp,
-    ) -> Result<Mesh> {
+    pub fn execute_parallel(meshes: Vec<Mesh>, op: BooleanOp) -> Result<Mesh> {
         if meshes.is_empty() {
             return Ok(Mesh::empty());
         }
@@ -29,19 +26,16 @@ impl ParallelBooleanExecutor {
         }
 
         // Parallel reduce using rayon
-        let result = meshes
-            .into_par_iter()
-            .reduce(
-                || Mesh::empty(),
-                |acc, mesh| {
-                    if acc.vertex_count() == 0 {
-                        mesh
-                    } else {
-                        acc.boolean_operation(&mesh, op.clone())
-                            .unwrap_or(acc)
-                    }
+        let result = meshes.into_par_iter().reduce(
+            || Mesh::empty(),
+            |acc, mesh| {
+                if acc.vertex_count() == 0 {
+                    mesh
+                } else {
+                    acc.boolean_operation(&mesh, op.clone()).unwrap_or(acc)
                 }
-            );
+            },
+        );
 
         Ok(result)
     }
@@ -74,10 +68,7 @@ impl ParallelBooleanExecutor {
     }
 
     /// Transform multiple meshes in parallel
-    pub fn transform_parallel(
-        meshes: Vec<Mesh>,
-        transform: nalgebra::Matrix4<f32>,
-    ) -> Vec<Mesh> {
+    pub fn transform_parallel(meshes: Vec<Mesh>, transform: nalgebra::Matrix4<f32>) -> Vec<Mesh> {
         meshes
             .into_par_iter()
             .map(|mut mesh| {
@@ -145,7 +136,7 @@ mod tests {
 
         let matrix = nalgebra::Matrix4::new_translation(&Vector3::new(5.0, 0.0, 0.0));
         let results = ParallelBooleanExecutor::transform_parallel(meshes, matrix);
-        
+
         assert_eq!(results.len(), 2);
     }
 
@@ -155,7 +146,9 @@ mod tests {
         let safe_mesh: ThreadSafeMesh = Arc::new(RwLock::new(mesh));
 
         let cloned = safe_mesh.clone_mesh();
-        assert_eq!(safe_mesh.read().unwrap().vertex_count(), cloned.vertex_count());
+        assert_eq!(
+            safe_mesh.read().unwrap().vertex_count(),
+            cloned.vertex_count()
+        );
     }
 }
-

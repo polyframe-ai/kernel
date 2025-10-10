@@ -42,7 +42,7 @@ impl BoundingBox {
         self.min.x = self.min.x.min(point.x);
         self.min.y = self.min.y.min(point.y);
         self.min.z = self.min.z.min(point.z);
-        
+
         self.max.x = self.max.x.max(point.x);
         self.max.y = self.max.y.max(point.y);
         self.max.z = self.max.z.max(point.z);
@@ -89,10 +89,9 @@ mod tests {
         let mut bbox = BoundingBox::empty();
         bbox.expand_to_include(&Point3::new(1.0, 2.0, 3.0));
         bbox.expand_to_include(&Point3::new(-1.0, -2.0, -3.0));
-        
+
         assert_eq!(bbox.min, Point3::new(-1.0, -2.0, -3.0));
         assert_eq!(bbox.max, Point3::new(1.0, 2.0, 3.0));
         assert_eq!(bbox.center(), Point3::new(0.0, 0.0, 0.0));
     }
 }
-

@@ -3,10 +3,14 @@
 
 //! Math utilities
 
-use nalgebra::{Vector3, Point3};
+use nalgebra::{Point3, Vector3};
 
 /// Calculate the normal of a triangle given three vertices
-pub fn calculate_triangle_normal(p0: &Point3<f32>, p1: &Point3<f32>, p2: &Point3<f32>) -> Vector3<f32> {
+pub fn calculate_triangle_normal(
+    p0: &Point3<f32>,
+    p1: &Point3<f32>,
+    p2: &Point3<f32>,
+) -> Vector3<f32> {
     let v1 = p1 - p0;
     let v2 = p2 - p0;
     v1.cross(&v2).normalize()
@@ -75,4 +79,3 @@ mod tests {
         assert!(approx_eq(rad_to_deg(rad), deg, 0.0001));
     }
 }
-

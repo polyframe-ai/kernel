@@ -3,12 +3,15 @@
 
 //! Incremental evaluator with cache invalidation
 
-use super::{Node, NodeKind, dependency_graph::{DependencyGraph, NodeId}};
-use crate::geometry::{Mesh, Primitive, BooleanOp};
-use anyhow::{Result, Context};
+use super::{
+    dependency_graph::{DependencyGraph, NodeId},
+    Node, NodeKind,
+};
+use crate::geometry::{BooleanOp, Mesh, Primitive};
+use anyhow::{Context, Result};
+use dashmap::DashMap;
 use nalgebra::Matrix4;
 use std::sync::{Arc, RwLock};
-use dashmap::DashMap;
 
 /// Thread-safe mesh cache
 pub type MeshCache = Arc<DashMap<NodeId, Arc<RwLock<Mesh>>>>;
@@ -66,9 +69,9 @@ impl IncrementalEvaluator {
 
     /// Get cached mesh if available
     pub fn get_cached(&self, node_id: &NodeId) -> Option<Mesh> {
-        self.cache.get(node_id).map(|entry| {
-            entry.read().unwrap().clone()
-        })
+        self.cache
+            .get(node_id)
+            .map(|entry| entry.read().unwrap().clone())
     }
 
     /// Evaluate node with caching
@@ -89,17 +92,14 @@ impl IncrementalEvaluator {
 
         // Store in cache if node has an ID
         if let Some(id) = node_id {
-            self.cache.insert(id.clone(), Arc::new(RwLock::new(mesh.clone())));
+            self.cache
+                .insert(id.clone(), Arc::new(RwLock::new(mesh.clone())));
         }
 
         Ok(mesh)
     }
 
-    fn evaluate_node_uncached(
-        &self,
-        kind: &NodeKind,
-        transform: &Matrix4<f32>,
-    ) -> Result<Mesh> {
+    fn evaluate_node_uncached(&self, kind: &NodeKind, transform: &Matrix4<f32>) -> Result<Mesh> {
         match kind {
             NodeKind::Cube(size) => {
                 let mut mesh = Primitive::cube(*size).to_mesh();
@@ -161,14 +161,17 @@ impl IncrementalEvaluator {
             return Ok(Mesh::empty());
         }
 
-        let mut result = self.evaluate_node(&children[0].kind, transform, &children[0].id)
+        let mut result = self
+            .evaluate_node(&children[0].kind, transform, &children[0].id)
             .context("Failed to evaluate first child")?;
 
         for child in &children[1..] {
-            let child_mesh = self.evaluate_node(&child.kind, transform, &child.id)
+            let child_mesh = self
+                .evaluate_node(&child.kind, transform, &child.id)
                 .context("Failed to evaluate child")?;
 
-            result = result.boolean_operation(&child_mesh, op.clone())
+            result = result
+                .boolean_operation(&child_mesh, op.clone())
                 .context("Boolean operation failed")?;
         }
 
@@ -206,4 +209,3 @@ impl CacheStats {
         }
     }
 }
-

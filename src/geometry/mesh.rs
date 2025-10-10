@@ -3,10 +3,10 @@
 
 //! Mesh representation and utilities
 
-use nalgebra::{Point3, Vector3, Matrix4};
-use serde::{Deserialize, Serialize};
 use super::{BooleanOp, BoundingBox};
 use anyhow::Result;
+use nalgebra::{Matrix4, Point3, Vector3};
+use serde::{Deserialize, Serialize};
 
 /// Vertex with position and normal
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
@@ -23,7 +23,8 @@ impl Vertex {
     pub fn transform(&mut self, matrix: &Matrix4<f32>) {
         self.position = matrix.transform_point(&self.position);
         // Transform normal (use inverse transpose for normals)
-        let normal_matrix = matrix.try_inverse()
+        let normal_matrix = matrix
+            .try_inverse()
             .map(|m| m.transpose())
             .unwrap_or(*matrix);
         self.normal = normal_matrix.transform_vector(&self.normal).normalize();
@@ -111,7 +112,7 @@ impl Mesh {
     pub fn merge(&mut self, other: &Mesh) {
         let offset = self.vertices.len();
         self.vertices.extend_from_slice(&other.vertices);
-        
+
         for triangle in &other.triangles {
             self.triangles.push(Triangle::new([
                 triangle.indices[0] + offset,
@@ -127,4 +128,3 @@ impl Default for Mesh {
         Self::new()
     }
 }
-

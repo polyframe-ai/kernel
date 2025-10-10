@@ -3,7 +3,7 @@
 
 //! Boolean operations using parry3d
 
-use super::{Mesh, Vertex, Triangle};
+use super::{Mesh, Triangle, Vertex};
 use anyhow::Result;
 use nalgebra::Point3;
 use parry3d::shape::TriMesh;
@@ -16,11 +16,7 @@ pub enum BooleanOp {
 }
 
 /// Perform boolean operation between two meshes
-pub fn perform_boolean_operation(
-    mesh_a: &Mesh,
-    mesh_b: &Mesh,
-    op: BooleanOp,
-) -> Result<Mesh> {
+pub fn perform_boolean_operation(mesh_a: &Mesh, mesh_b: &Mesh, op: BooleanOp) -> Result<Mesh> {
     // For now, implement simple mesh merging for union
     // Full CSG operations would require a more complex implementation
     match op {
@@ -44,20 +40,18 @@ pub fn perform_boolean_operation(
 
 /// Convert Mesh to parry3d TriMesh
 fn mesh_to_trimesh(mesh: &Mesh) -> TriMesh {
-    let vertices: Vec<Point3<f32>> = mesh
-        .vertices
-        .iter()
-        .map(|v| v.position)
-        .collect();
+    let vertices: Vec<Point3<f32>> = mesh.vertices.iter().map(|v| v.position).collect();
 
     let indices: Vec<[u32; 3]> = mesh
         .triangles
         .iter()
-        .map(|t| [
-            t.indices[0] as u32,
-            t.indices[1] as u32,
-            t.indices[2] as u32,
-        ])
+        .map(|t| {
+            [
+                t.indices[0] as u32,
+                t.indices[1] as u32,
+                t.indices[2] as u32,
+            ]
+        })
         .collect();
 
     TriMesh::new(vertices, indices)
@@ -93,9 +87,8 @@ mod tests {
     fn test_union() {
         let mesh_a = Primitive::cube(nalgebra::Vector3::new(10.0, 10.0, 10.0)).to_mesh();
         let mesh_b = Primitive::sphere(5.0, 16).to_mesh();
-        
+
         let result = perform_boolean_operation(&mesh_a, &mesh_b, BooleanOp::Union);
         assert!(result.is_ok());
     }
 }
-

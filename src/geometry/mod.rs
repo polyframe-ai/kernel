@@ -3,20 +3,16 @@
 
 //! Geometry module - mesh representation and operations
 
-mod primitives;
-mod mesh;
-mod boolean;
 mod bbox;
+mod boolean;
+mod mesh;
 mod parallel_boolean;
+mod primitives;
 
-pub use primitives::Primitive;
-pub use mesh::{Mesh, Vertex, Triangle};
-pub use boolean::BooleanOp;
 pub use bbox::BoundingBox;
+pub use boolean::BooleanOp;
+pub use mesh::{Mesh, Triangle, Vertex};
 pub use parallel_boolean::{
-    ParallelBooleanExecutor, 
-    ThreadSafeMesh, 
-    ThreadSafeMeshOps,
-    batch_process_meshes,
+    batch_process_meshes, ParallelBooleanExecutor, ThreadSafeMesh, ThreadSafeMeshOps,
 };
-
+pub use primitives::Primitive;

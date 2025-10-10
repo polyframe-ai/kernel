@@ -4,7 +4,7 @@
 //! Parallel AST evaluator using rayon
 
 use super::{Node, NodeKind};
-use crate::geometry::{Mesh, Primitive, BooleanOp, ParallelBooleanExecutor};
+use crate::geometry::{BooleanOp, Mesh, ParallelBooleanExecutor, Primitive};
 use anyhow::Result;
 use nalgebra::Matrix4;
 use rayon::prelude::*;
@@ -123,4 +123,3 @@ mod tests {
         assert!(mesh.vertex_count() > 0);
     }
 }
-

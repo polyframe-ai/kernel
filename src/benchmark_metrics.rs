@@ -3,9 +3,9 @@
 
 //! Benchmark metrics collection and reporting
 
-use std::time::{Duration, Instant};
-use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use std::time::{Duration, Instant};
 
 /// Performance metrics for a single operation
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -64,10 +64,7 @@ impl BenchmarkReport {
         let baseline_metrics = self.metrics.get(baseline)?;
         let optimized_metrics = self.metrics.get(optimized)?;
 
-        Some(
-            baseline_metrics.duration.as_secs_f64() 
-            / optimized_metrics.duration.as_secs_f64()
-        )
+        Some(baseline_metrics.duration.as_secs_f64() / optimized_metrics.duration.as_secs_f64())
     }
 
     /// Print formatted report to console
@@ -75,7 +72,7 @@ impl BenchmarkReport {
         println!("\n╔══════════════════════════════════════════════════════════════════════╗");
         println!("║              POLYFRAME KERNEL - PERFORMANCE REPORT                  ║");
         println!("╠══════════════════════════════════════════════════════════════════════╣");
-        
+
         let mut metrics_vec: Vec<_> = self.metrics.values().collect();
         metrics_vec.sort_by(|a, b| a.duration.cmp(&b.duration));
 
@@ -140,7 +137,7 @@ impl Timer {
 
 /// Estimate memory usage for a mesh
 pub fn estimate_mesh_memory(vertex_count: usize, triangle_count: usize) -> usize {
-    // Rough estimate: 
+    // Rough estimate:
     // Each vertex: position (12 bytes) + normal (12 bytes) = 24 bytes
     // Each triangle: 3 indices (12 bytes for usize on 64-bit)
     let vertex_bytes = vertex_count * 24;
@@ -162,16 +159,16 @@ mod tests {
     #[test]
     fn test_benchmark_report() {
         let mut report = BenchmarkReport::new();
-        
+
         let mut metrics1 = OperationMetrics::new("baseline");
         metrics1.duration = Duration::from_millis(100);
-        
+
         let mut metrics2 = OperationMetrics::new("optimized");
         metrics2.duration = Duration::from_millis(50);
-        
+
         report.add_metrics(metrics1);
         report.add_metrics(metrics2);
-        
+
         let speedup = report.speedup("baseline", "optimized").unwrap();
         assert_eq!(speedup, 2.0);
     }
@@ -183,4 +180,3 @@ mod tests {
         assert!(timer.elapsed_ms() >= 10.0);
     }
 }
-

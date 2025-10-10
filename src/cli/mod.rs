@@ -3,13 +3,12 @@
 
 //! CLI subsystem for Polyframe Kernel
 
-pub mod runner;
+pub mod compare;
 pub mod diff;
 pub mod reporter;
-pub mod compare;
+pub mod runner;
 
-pub use runner::Runner;
-pub use diff::{MeshDiff, ComparisonResult};
+pub use compare::{batch_compare, compare_with_openscad};
+pub use diff::{ComparisonResult, MeshDiff};
 pub use reporter::Reporter;
-pub use compare::{compare_with_openscad, batch_compare};
-
+pub use runner::Runner;

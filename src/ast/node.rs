@@ -30,21 +30,33 @@ impl Node {
 pub enum NodeKind {
     // Primitives
     Cube(Vec3),
-    Sphere { r: f32, fn_: u32 },
-    Cylinder { h: f32, r: f32, fn_: u32 },
-    Cone { h: f32, r1: f32, r2: f32, fn_: u32 },
-    
+    Sphere {
+        r: f32,
+        fn_: u32,
+    },
+    Cylinder {
+        h: f32,
+        r: f32,
+        fn_: u32,
+    },
+    Cone {
+        h: f32,
+        r1: f32,
+        r2: f32,
+        fn_: u32,
+    },
+
     // Boolean operations
     Union(Vec<Node>),
     Difference(Vec<Node>),
     Intersection(Vec<Node>),
-    
+
     // Transformations
     Transform {
         op: TransformOp,
         children: Vec<Node>,
     },
-    
+
     // Empty node
     Empty,
 }
@@ -76,38 +88,30 @@ impl TransformOp {
     /// Convert transformation to a 4x4 matrix
     pub fn to_matrix(&self) -> nalgebra::Matrix4<f32> {
         use nalgebra::{Matrix4, UnitQuaternion, Vector3};
-        
+
         match self {
-            TransformOp::Translate(v) => {
-                Matrix4::new_translation(v)
-            }
+            TransformOp::Translate(v) => Matrix4::new_translation(v),
             TransformOp::Rotate(angles) => {
-                let rx = UnitQuaternion::from_axis_angle(
-                    &Vector3::x_axis(), 
-                    angles.x.to_radians()
-                );
-                let ry = UnitQuaternion::from_axis_angle(
-                    &Vector3::y_axis(), 
-                    angles.y.to_radians()
-                );
-                let rz = UnitQuaternion::from_axis_angle(
-                    &Vector3::z_axis(), 
-                    angles.z.to_radians()
-                );
+                let rx = UnitQuaternion::from_axis_angle(&Vector3::x_axis(), angles.x.to_radians());
+                let ry = UnitQuaternion::from_axis_angle(&Vector3::y_axis(), angles.y.to_radians());
+                let rz = UnitQuaternion::from_axis_angle(&Vector3::z_axis(), angles.z.to_radians());
                 (rz * ry * rx).to_homogeneous()
             }
-            TransformOp::Scale(s) => {
-                Matrix4::new_nonuniform_scaling(s)
-            }
+            TransformOp::Scale(s) => Matrix4::new_nonuniform_scaling(s),
             TransformOp::Mirror(axis) => {
                 let mut m = Matrix4::identity();
-                if axis.x != 0.0 { m[(0, 0)] = -1.0; }
-                if axis.y != 0.0 { m[(1, 1)] = -1.0; }
-                if axis.z != 0.0 { m[(2, 2)] = -1.0; }
+                if axis.x != 0.0 {
+                    m[(0, 0)] = -1.0;
+                }
+                if axis.y != 0.0 {
+                    m[(1, 1)] = -1.0;
+                }
+                if axis.z != 0.0 {
+                    m[(2, 2)] = -1.0;
+                }
                 m
             }
             TransformOp::Multmatrix(m) => *m,
         }
     }
 }
-

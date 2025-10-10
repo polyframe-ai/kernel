@@ -3,16 +3,21 @@
 
 //! CLI output reporter with colored formatting
 
+use super::diff::ComparisonResult;
 use colored::*;
 use std::time::Duration;
-use super::diff::ComparisonResult;
 
 /// CLI reporter for formatted output
 pub struct Reporter;
 
 impl Reporter {
     /// Report comparison result with colors
-    pub fn report_comparison(file: &str, result: &ComparisonResult, poly_time: Duration, openscad_time: Option<Duration>) {
+    pub fn report_comparison(
+        file: &str,
+        result: &ComparisonResult,
+        poly_time: Duration,
+        openscad_time: Option<Duration>,
+    ) {
         println!("\n{}", "━".repeat(80).bright_black());
         println!("{} {}", "File:".bold(), file.cyan());
         println!("{}", "━".repeat(80).bright_black());
@@ -79,9 +84,21 @@ impl Reporter {
         println!("\n{}", "━".repeat(80).bright_black());
         println!("{} {}", "Rendered:".bold(), file.cyan());
         println!("{}", "━".repeat(80).bright_black());
-        println!("  {} {}", "Vertices:".bright_black(), vertices.to_string().cyan());
-        println!("  {} {}", "Triangles:".bright_black(), triangles.to_string().cyan());
-        println!("  {} {}", "Time:".bright_black(), Self::format_duration(duration).yellow());
+        println!(
+            "  {} {}",
+            "Vertices:".bright_black(),
+            vertices.to_string().cyan()
+        );
+        println!(
+            "  {} {}",
+            "Triangles:".bright_black(),
+            triangles.to_string().cyan()
+        );
+        println!(
+            "  {} {}",
+            "Time:".bright_black(),
+            Self::format_duration(duration).yellow()
+        );
         println!("{}", "━".repeat(80).bright_black());
     }
 
@@ -133,7 +150,7 @@ impl Reporter {
     /// Format duration for display
     fn format_duration(duration: Duration) -> String {
         let micros = duration.as_micros();
-        
+
         if micros < 1_000 {
             format!("{}µs", micros)
         } else if micros < 1_000_000 {
@@ -160,9 +177,14 @@ mod tests {
 
     #[test]
     fn test_format_duration() {
-        assert_eq!(Reporter::format_duration(Duration::from_micros(500)), "500µs");
-        assert_eq!(Reporter::format_duration(Duration::from_millis(5)), "5.00ms");
+        assert_eq!(
+            Reporter::format_duration(Duration::from_micros(500)),
+            "500µs"
+        );
+        assert_eq!(
+            Reporter::format_duration(Duration::from_millis(5)),
+            "5.00ms"
+        );
         assert_eq!(Reporter::format_duration(Duration::from_secs(2)), "2.00s");
     }
 }
-

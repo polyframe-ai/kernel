@@ -3,7 +3,7 @@
 
 //! Geometric primitives generator
 
-use super::{Mesh, Vertex, Triangle};
+use super::{Mesh, Triangle, Vertex};
 use nalgebra::{Point3, Vector3};
 use std::f32::consts::PI;
 
@@ -27,12 +27,21 @@ impl Primitive {
 
     pub fn cylinder(h: f32, r: f32, fn_: u32) -> Self {
         let segments = if fn_ > 0 { fn_ } else { 32 };
-        Self::Cylinder { h, r, fn_: segments }
+        Self::Cylinder {
+            h,
+            r,
+            fn_: segments,
+        }
     }
 
     pub fn cone(h: f32, r1: f32, r2: f32, fn_: u32) -> Self {
         let segments = if fn_ > 0 { fn_ } else { 32 };
-        Self::Cone { h, r1, r2, fn_: segments }
+        Self::Cone {
+            h,
+            r1,
+            r2,
+            fn_: segments,
+        }
     }
 
     pub fn to_mesh(&self) -> Mesh {
@@ -53,10 +62,14 @@ fn generate_cube_mesh(size: Vector3<f32>) -> Mesh {
 
     // 8 vertices of the cube
     let positions = [
-        Point3::new(-hx, -hy, -hz), Point3::new(hx, -hy, -hz),
-        Point3::new(hx, hy, -hz),   Point3::new(-hx, hy, -hz),
-        Point3::new(-hx, -hy, hz),  Point3::new(hx, -hy, hz),
-        Point3::new(hx, hy, hz),    Point3::new(-hx, hy, hz),
+        Point3::new(-hx, -hy, -hz),
+        Point3::new(hx, -hy, -hz),
+        Point3::new(hx, hy, -hz),
+        Point3::new(-hx, hy, -hz),
+        Point3::new(-hx, -hy, hz),
+        Point3::new(hx, -hy, hz),
+        Point3::new(hx, hy, hz),
+        Point3::new(-hx, hy, hz),
     ];
 
     // 6 faces, each with its normal
@@ -165,18 +178,12 @@ fn generate_cone_mesh(height: f32, r1: f32, r2: f32, segments: u32) -> Mesh {
 
         // Bottom vertex
         let bottom_pos = Point3::new(r1 * cos, -half_h, r1 * sin);
-        let bottom_idx = mesh.add_vertex(Vertex::new(
-            bottom_pos,
-            Vector3::new(0.0, -1.0, 0.0),
-        ));
+        let bottom_idx = mesh.add_vertex(Vertex::new(bottom_pos, Vector3::new(0.0, -1.0, 0.0)));
         bottom_indices.push(bottom_idx);
 
         // Top vertex
         let top_pos = Point3::new(r2 * cos, half_h, r2 * sin);
-        let top_idx = mesh.add_vertex(Vertex::new(
-            top_pos,
-            Vector3::new(0.0, 1.0, 0.0),
-        ));
+        let top_idx = mesh.add_vertex(Vertex::new(top_pos, Vector3::new(0.0, 1.0, 0.0)));
         top_indices.push(top_idx);
     }
 
@@ -203,12 +210,12 @@ fn generate_cone_mesh(height: f32, r1: f32, r2: f32, segments: u32) -> Mesh {
     // Side triangles
     for i in 0..segments {
         let next = (i + 1) % segments;
-        
+
         // Calculate side normal
         let p1 = mesh.vertices[bottom_indices[i as usize]].position;
         let p2 = mesh.vertices[top_indices[i as usize]].position;
         let p3 = mesh.vertices[bottom_indices[next as usize]].position;
-        
+
         let v1 = p2 - p1;
         let v2 = p3 - p1;
         let normal = v1.cross(&v2).normalize();
@@ -231,4 +238,3 @@ fn generate_cone_mesh(height: f32, r1: f32, r2: f32, segments: u32) -> Mesh {
 
     mesh
 }
-

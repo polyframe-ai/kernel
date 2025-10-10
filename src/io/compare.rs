@@ -59,9 +59,8 @@ pub fn compare_meshes(mesh_a: &Mesh, mesh_b: &Mesh, tolerance: f32) -> MeshCompa
     comparison.bbox_tolerance = tolerance;
 
     // Overall pass if all checks pass
-    comparison.passed = comparison.vertex_count_match
-        && comparison.triangle_count_match
-        && comparison.bbox_match;
+    comparison.passed =
+        comparison.vertex_count_match && comparison.triangle_count_match && comparison.bbox_match;
 
     comparison
 }
@@ -74,15 +73,15 @@ pub fn compare_triangle_count_with_tolerance(
 ) -> bool {
     let count_a = mesh_a.triangle_count() as f32;
     let count_b = mesh_b.triangle_count() as f32;
-    
+
     if count_a == 0.0 && count_b == 0.0 {
         return true;
     }
-    
+
     let diff = (count_a - count_b).abs();
     let max_count = count_a.max(count_b);
     let percent_diff = (diff / max_count) * 100.0;
-    
+
     percent_diff <= tolerance_percent
 }
 
@@ -96,7 +95,7 @@ mod tests {
     fn test_compare_identical_meshes() {
         let mesh_a = Primitive::cube(Vector3::new(10.0, 10.0, 10.0)).to_mesh();
         let mesh_b = Primitive::cube(Vector3::new(10.0, 10.0, 10.0)).to_mesh();
-        
+
         let comparison = compare_meshes(&mesh_a, &mesh_b, 0.001);
         assert!(comparison.passed);
         assert!(comparison.vertex_count_match);
@@ -108,7 +107,7 @@ mod tests {
     fn test_compare_different_sizes() {
         let mesh_a = Primitive::cube(Vector3::new(10.0, 10.0, 10.0)).to_mesh();
         let mesh_b = Primitive::cube(Vector3::new(20.0, 20.0, 20.0)).to_mesh();
-        
+
         let comparison = compare_meshes(&mesh_a, &mesh_b, 0.001);
         assert!(!comparison.bbox_match);
     }
@@ -117,12 +116,15 @@ mod tests {
     fn test_triangle_count_tolerance() {
         let mesh_a = Primitive::sphere(10.0, 32).to_mesh();
         let mesh_b = Primitive::sphere(10.0, 16).to_mesh();
-        
+
         // Should fail with 0% tolerance
-        assert!(!compare_triangle_count_with_tolerance(&mesh_a, &mesh_b, 0.0));
-        
+        assert!(!compare_triangle_count_with_tolerance(
+            &mesh_a, &mesh_b, 0.0
+        ));
+
         // Should pass with high tolerance
-        assert!(compare_triangle_count_with_tolerance(&mesh_a, &mesh_b, 100.0));
+        assert!(compare_triangle_count_with_tolerance(
+            &mesh_a, &mesh_b, 100.0
+        ));
     }
 }
-

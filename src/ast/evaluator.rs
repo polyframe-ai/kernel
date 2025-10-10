@@ -4,11 +4,11 @@
 //! AST Evaluator - converts AST to geometry
 
 use super::{Node, NodeKind};
-use crate::geometry::{Mesh, Primitive, BooleanOp};
-use anyhow::{Result, Context};
+use crate::geometry::{BooleanOp, Mesh, Primitive};
+use anyhow::{Context, Result};
+use dashmap::DashMap;
 use nalgebra::Matrix4;
 use std::sync::Arc;
-use dashmap::DashMap;
 
 /// AST evaluator with caching support
 pub struct Evaluator {
@@ -81,7 +81,7 @@ impl Evaluator {
 
             NodeKind::Transform { op, children } => {
                 let new_transform = op.to_matrix() * transform;
-                
+
                 if children.len() == 1 {
                     self.evaluate_node(&children[0].kind, &new_transform)
                 } else {
@@ -89,9 +89,7 @@ impl Evaluator {
                 }
             }
 
-            NodeKind::Empty => {
-                Ok(Mesh::empty())
-            }
+            NodeKind::Empty => Ok(Mesh::empty()),
         }
     }
 
@@ -105,14 +103,17 @@ impl Evaluator {
             return Ok(Mesh::empty());
         }
 
-        let mut result = self.evaluate_node(&children[0].kind, transform)
+        let mut result = self
+            .evaluate_node(&children[0].kind, transform)
             .context("Failed to evaluate first child")?;
 
         for child in &children[1..] {
-            let child_mesh = self.evaluate_node(&child.kind, transform)
+            let child_mesh = self
+                .evaluate_node(&child.kind, transform)
                 .context("Failed to evaluate child")?;
-            
-            result = result.boolean_operation(&child_mesh, op.clone())
+
+            result = result
+                .boolean_operation(&child_mesh, op.clone())
                 .context("Boolean operation failed")?;
         }
 
@@ -125,4 +126,3 @@ impl Default for Evaluator {
         Self::new()
     }
 }
-
