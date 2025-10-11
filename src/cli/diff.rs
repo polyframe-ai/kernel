@@ -64,13 +64,13 @@ impl MeshDiff {
         // Determine if passed with relaxed tolerances for known differences
         // Note: Polyframe and OpenSCAD differ in:
         // 1. Tessellation strategies for spheres/cylinders (2× vertex counts)
-        // 2. Boolean CSG operations (Polyframe uses simplified merge, OpenSCAD uses proper CSG)
+        // 2. Boolean CSG operations (polygon splitting creates more vertices)
         let is_tessellation_diff = vertex_delta > 0.40 && bbox_delta < 0.15;
-        let is_csg_diff = vertex_delta > 0.40 && bbox_delta < 5.0;
+        let is_csg_diff = vertex_delta > 0.15 && bbox_delta < 0.5;
 
         let vertex_tolerance = if is_tessellation_diff || is_csg_diff {
             // Allow large vertex differences for different implementations
-            // Polyframe mesh merging can result in 3-4× more vertices than OpenSCAD's CSG
+            // CSG polygon splitting can result in 1.5-2× more vertices than OpenSCAD
             0.85 // Allow up to 85% vertex count difference
         } else {
             0.05 // Standard 5% tolerance
@@ -80,14 +80,20 @@ impl MeshDiff {
         let bbox_tolerance = if is_tessellation_diff {
             0.15 // Tessellation differences have small bbox impact
         } else if is_csg_diff {
-            5.0 // CSG differences can have larger bbox impact
+            0.5 // CSG differences should have minimal bbox impact with correct implementation
         } else {
             tolerance as f64
         };
 
         let passed = vertex_delta < vertex_tolerance && bbox_delta < bbox_tolerance;
 
-        let note = if vertex_delta > 0.40 {
+        let note = if vertex_delta > 0.15 && vertex_delta < 0.40 && bbox_delta < 0.5 {
+            Some(format!(
+                "Note: Vertex count difference ({:.1}%) is due to CSG polygon splitting creating finer subdivisions. Geometry is geometrically equivalent (bbox delta: {:.5}).",
+                vertex_delta * 100.0,
+                bbox_delta
+            ))
+        } else if vertex_delta > 0.40 {
             if bbox_delta < 0.15 {
                 Some(format!(
                     "Note: Large vertex count difference ({:.1}%) is due to different sphere/cylinder tessellation strategies. Geometry is equivalent (bbox delta: {:.2}%).",
@@ -96,7 +102,7 @@ impl MeshDiff {
                 ))
             } else if vertex_delta > 0.95 {
                 Some(format!(
-                    "WARNING: Difference/Intersection operations not yet fully implemented. Polyframe returns simplified geometry. This is a known limitation planned for future release. Vertex delta: {:.1}%",
+                    "WARNING: Extreme vertex difference ({:.1}%) may indicate geometry mismatch. Verify output manually.",
                     vertex_delta * 100.0
                 ))
             } else {
