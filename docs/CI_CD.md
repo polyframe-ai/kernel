@@ -132,7 +132,7 @@ The project includes an automated release script that handles all validation ste
 # Add a new section for the version with changes
 
 # 3. Run the release script
-./scripts/bump_version.sh
+./scripts/release.sh
 ```
 
 The script will:

@@ -10,7 +10,7 @@ For standard releases, use the automated script:
 # 1. Update version in Cargo.toml
 # 2. Update CHANGELOG.md
 # 3. Run the release script
-./scripts/bump_version.sh
+./scripts/release.sh
 ```
 
 ## Detailed Release Process
@@ -55,15 +55,15 @@ Run the script with the bump type:
 
 ```bash
 # Interactive mode (asks you to choose)
-./scripts/bump_version.sh
+./scripts/release.sh
 
 # Or specify directly
-./scripts/bump_version.sh patch   # 0.1.0 → 0.1.1
-./scripts/bump_version.sh minor   # 0.1.0 → 0.2.0
-./scripts/bump_version.sh major   # 0.1.0 → 1.0.0
+./scripts/release.sh patch   # 0.1.0 → 0.1.1
+./scripts/release.sh minor   # 0.1.0 → 0.2.0
+./scripts/release.sh major   # 0.1.0 → 1.0.0
 
 # Retry a specific version (if previous attempt failed)
-./scripts/bump_version.sh 0.1.1   # Retry version 0.1.1
+./scripts/release.sh 0.1.1   # Retry version 0.1.1
 ```
 
 **The script will:**
@@ -91,7 +91,7 @@ Run the script with the bump type:
   git tag -d v0.1.1 2>/dev/null || true
   
   # Retry the same version
-  ./scripts/bump_version.sh 0.1.1
+  ./scripts/release.sh 0.1.1
   ```
 - Or in interactive mode, choose option 4 (retry)
 
@@ -199,7 +199,7 @@ For urgent bug fixes:
 2. Make the minimal fix
 3. Update version to patch (e.g., 0.2.0 → 0.2.1)
 4. Update CHANGELOG.md
-5. Run `./scripts/bump_version.sh`
+5. Run `./scripts/release.sh`
 6. Merge back to main:
    ```bash
    git checkout main

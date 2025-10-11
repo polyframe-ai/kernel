@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
-# Polyframe Kernel - Version Bump and Release Script
+# Polyframe Kernel - Release Script
 # 
 # This script automates the release process by:
-# 1. Bumping the version number (major, minor, or patch)
+# 1. Bumping the version number (major, minor, patch) or re-releasing current
 # 2. Updating Cargo.toml and Cargo.lock
 # 3. Running all quality checks (tests, formatting, linting)
 # 4. Committing changes and creating a git tag
 # 5. Pushing to trigger the release workflow
 #
 # Usage:
-#   ./scripts/bump_version.sh [major|minor|patch|VERSION]
-#   ./scripts/bump_version.sh           # Interactive mode
-#   ./scripts/bump_version.sh 0.1.1     # Specific version (retry)
-#   ./scripts/bump_version.sh patch     # Bump patch version
+#   ./scripts/release.sh [major|minor|patch|VERSION]
+#   ./scripts/release.sh                # Interactive mode
+#   ./scripts/release.sh 0.1.1          # Specific version
+#   ./scripts/release.sh patch          # Bump patch version
 #
 # Prerequisites:
 #   - cargo (Rust toolchain)
@@ -74,12 +74,15 @@ RETRY_MODE=false
 # Check if argument is a specific version (contains dots)
 if [[ "$BUMP_TYPE" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     NEW_VERSION="$BUMP_TYPE"
-    RETRY_MODE=true
-    warning "Retry mode: Setting version to ${NEW_VERSION}"
     
-    # Validate it's not the current version
+    # Check if it's the same as current version
     if [ "$NEW_VERSION" == "$CURRENT_VERSION" ]; then
-        error "Target version ${NEW_VERSION} is the same as current version"
+        RETRY_MODE=true
+        warning "Re-release mode: Version ${NEW_VERSION} is already current"
+        warning "This will re-run checks and allow you to push the existing tag"
+    else
+        RETRY_MODE=true
+        warning "Retry mode: Setting version to ${NEW_VERSION}"
     fi
     
 elif [ -z "$BUMP_TYPE" ]; then
@@ -171,16 +174,20 @@ if [[ ! $REPLY =~ ^[Yy]$ ]]; then
     exit 0
 fi
 
-# Update Cargo.toml
-info "Updating Cargo.toml..."
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    # macOS
-    sed -i '' "s/^version = \"${CURRENT_VERSION}\"/version = \"${NEW_VERSION}\"/" Cargo.toml
+# Update Cargo.toml (skip if same version)
+if [ "$NEW_VERSION" != "$CURRENT_VERSION" ]; then
+    info "Updating Cargo.toml..."
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        # macOS
+        sed -i '' "s/^version = \"${CURRENT_VERSION}\"/version = \"${NEW_VERSION}\"/" Cargo.toml
+    else
+        # Linux
+        sed -i "s/^version = \"${CURRENT_VERSION}\"/version = \"${NEW_VERSION}\"/" Cargo.toml
+    fi
+    success "Cargo.toml updated"
 else
-    # Linux
-    sed -i "s/^version = \"${CURRENT_VERSION}\"/version = \"${NEW_VERSION}\"/" Cargo.toml
+    info "Cargo.toml already at version ${NEW_VERSION}, skipping update"
 fi
-success "Cargo.toml updated"
 
 # Update Cargo.lock
 info "Updating Cargo.lock..."
@@ -189,10 +196,23 @@ success "Cargo.lock updated"
 
 # Update CHANGELOG.md
 echo ""
-info "Updating CHANGELOG.md..."
+if [ "$NEW_VERSION" != "$CURRENT_VERSION" ]; then
+    info "Updating CHANGELOG.md..."
+else
+    info "Version unchanged, checking CHANGELOG.md..."
+fi
 
 if [ ! -f "CHANGELOG.md" ]; then
     warning "CHANGELOG.md not found, skipping changelog update"
+elif [ "$NEW_VERSION" == "$CURRENT_VERSION" ]; then
+    # Check if version already exists in CHANGELOG
+    if grep -q "## \[${NEW_VERSION}\]" CHANGELOG.md; then
+        success "CHANGELOG.md already contains version ${NEW_VERSION}"
+    else
+        warning "Version ${NEW_VERSION} not found in CHANGELOG.md"
+        echo "Please ensure CHANGELOG.md is updated"
+        read -p "Press Enter to continue..."
+    fi
 else
     # Check if there's an Unreleased section with content
     if grep -q "## \[Unreleased\]" CHANGELOG.md; then
@@ -313,18 +333,36 @@ echo ""
 success "All pre-release checks passed!"
 echo ""
 
-# Stage changes
-git add Cargo.toml Cargo.lock CHANGELOG.md
+# Check if there are changes to commit
+if [ -n "$(git status --porcelain Cargo.toml Cargo.lock CHANGELOG.md 2>/dev/null)" ]; then
+    # Stage changes
+    git add Cargo.toml Cargo.lock CHANGELOG.md
 
-# Create commit
-info "Creating release commit..."
-git commit -m "Release v${NEW_VERSION}"
-success "Commit created"
+    # Create commit
+    info "Creating release commit..."
+    git commit -m "Release v${NEW_VERSION}"
+    success "Commit created"
+else
+    info "No changes to commit (files already up to date)"
+fi
 
-# Create tag
-info "Creating git tag v${NEW_VERSION}..."
-git tag -a "v${NEW_VERSION}" -m "Release version ${NEW_VERSION}"
-success "Tag v${NEW_VERSION} created"
+# Create tag (or verify it exists)
+if git rev-parse "v${NEW_VERSION}" >/dev/null 2>&1; then
+    warning "Tag v${NEW_VERSION} already exists"
+    read -p "Delete and recreate tag? (y/N) " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        git tag -d "v${NEW_VERSION}"
+        git tag -a "v${NEW_VERSION}" -m "Release version ${NEW_VERSION}"
+        success "Tag v${NEW_VERSION} recreated"
+    else
+        info "Using existing tag v${NEW_VERSION}"
+    fi
+else
+    info "Creating git tag v${NEW_VERSION}..."
+    git tag -a "v${NEW_VERSION}" -m "Release version ${NEW_VERSION}"
+    success "Tag v${NEW_VERSION} created"
+fi
 
 # Show what will be pushed
 echo ""

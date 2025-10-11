@@ -61,7 +61,7 @@ All required metadata is now configured for crates.io publishing:
 
 ### 3. Release Automation
 
-#### `scripts/bump_version.sh`
+#### `scripts/release.sh`
 **Purpose:** Automate release validation and tagging
 
 **Features:**
@@ -74,7 +74,7 @@ All required metadata is now configured for crates.io publishing:
 
 **Usage:**
 ```bash
-./scripts/bump_version.sh
+./scripts/release.sh
 ```
 
 **Permissions:** Already set to executable
@@ -144,7 +144,7 @@ vim Cargo.toml  # Change version = "0.2.0"
 vim CHANGELOG.md  # Add release notes
 
 # 3. Run release script
-./scripts/bump_version.sh
+./scripts/release.sh
 ```
 
 The script will:
@@ -239,7 +239,7 @@ shasum -a 256 -c SHA256SUMS.txt --ignore-missing
 
 3. **Prepare for v0.1.0 Release:**
    - Ensure `CHANGELOG.md` is complete
-   - Run `./scripts/bump_version.sh`
+   - Run `./scripts/release.sh`
    - Verify workflow completes successfully
 
 ### Ongoing Maintenance
