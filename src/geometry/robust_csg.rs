@@ -51,22 +51,20 @@ pub fn robust_difference(a: &Mesh, b: &Mesh) -> Result<Mesh> {
 fn estimate_complexity(a: &Mesh, b: &Mesh) -> f32 {
     let mut score: f32 = 0.0;
 
-    // Factor 1: Mesh sizes
-    if a.triangle_count() > 100 || b.triangle_count() > 100 {
+    // Factor 1: Very large meshes (> 200 triangles indicates union or complex shape)
+    if a.triangle_count() > 200 {
+        score += 0.4;
+    }
+
+    // Factor 2: Both meshes are large
+    if a.triangle_count() > 100 && b.triangle_count() > 100 {
         score += 0.3;
     }
 
-    // Factor 2: Curved surfaces
-    if has_curved_surfaces(a) {
-        score += 0.2;
-    }
-    if has_curved_surfaces(b) {
-        score += 0.3;
-    }
-
-    // Factor 3: Both have curved surfaces
-    if has_curved_surfaces(a) && has_curved_surfaces(b) {
-        score += 0.3;
+    // Factor 3: A is complex (union) AND B is curved
+    // This is the problematic case: union of cube+cylinder minus sphere
+    if a.triangle_count() > 200 && has_curved_surfaces(b) {
+        score += 0.4;
     }
 
     score.min(1.0)
