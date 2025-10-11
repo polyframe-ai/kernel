@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] - 2025-10-11
+
 ## [0.1.1] - 2025-10-11
 ### Added
 - Initial CI/CD pipeline with GitHub Actions
@@ -58,7 +60,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Third-party license notices
 - Provenance documentation
 
-[Unreleased]: https://github.com/polyframe-ai/kernel/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/polyframe-ai/kernel/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/polyframe-ai/kernel/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/polyframe-ai/kernel/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/polyframe-ai/kernel/releases/tag/v0.1.0
 
