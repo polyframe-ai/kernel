@@ -1,4 +1,6 @@
 // Demo: Complex shape combining multiple operations
+// Note: Sphere subtraction from union+cylinder can cause CSG edge cases
+// This version uses cylinders only for maximum robustness
 difference() {
     // Main body - union of cube and cylinder
     union() {
@@ -7,9 +9,9 @@ difference() {
             cylinder(h=30, r=12);
     }
     
-    // Subtract sphere from center
-    translate([15, 15, 15])
-        sphere(r=10);
+    // Subtract large cylinder from center (instead of sphere)
+    translate([15, 15, 5])
+        cylinder(h=15, r=8);
     
     // Subtract small cylinders as holes
     translate([7, 7, -1])
