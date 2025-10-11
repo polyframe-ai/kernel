@@ -90,7 +90,7 @@ mod tests {
     fn test_comparison_uses_mesh_diff() {
         // Test that we're using the MeshDiff logic (which has its own comprehensive tests)
         // This is just a smoke test to ensure the integration works
-        use crate::geometry::{Mesh, Primitive};
+        use crate::geometry::Primitive;
         use nalgebra::Vector3;
 
         let mesh_a = Primitive::cube(Vector3::new(10.0, 10.0, 10.0), false).to_mesh();
