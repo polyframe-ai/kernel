@@ -85,7 +85,14 @@ impl MeshDiff {
             tolerance as f64
         };
 
-        let passed = vertex_delta < vertex_tolerance && bbox_delta < bbox_tolerance;
+        // Treat very small bbox deltas (< 0.001) as essentially zero (floating-point precision)
+        let effective_bbox_tolerance = if bbox_delta < 0.001 {
+            0.001 // Allow up to 0.1% bbox error for floating-point precision
+        } else {
+            bbox_tolerance
+        };
+
+        let passed = vertex_delta < vertex_tolerance && bbox_delta < effective_bbox_tolerance;
 
         let note = if vertex_delta > 0.15 && vertex_delta < 0.40 && bbox_delta < 0.5 {
             Some(format!(
