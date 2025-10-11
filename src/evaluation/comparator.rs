@@ -87,9 +87,30 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_diff_ratio() {
-        assert_eq!(calc_diff_ratio(100, 100), 0.0);
-        assert!((calc_diff_ratio(100, 110) - 0.0909).abs() < 0.001);
-        assert_eq!(calc_diff_ratio(0, 0), 0.0);
+    fn test_comparison_uses_mesh_diff() {
+        // Test that we're using the MeshDiff logic (which has its own comprehensive tests)
+        // This is just a smoke test to ensure the integration works
+        use crate::geometry::{Mesh, Primitive};
+        use nalgebra::Vector3;
+
+        let mesh_a = Primitive::cube(Vector3::new(10.0, 10.0, 10.0), false).to_mesh();
+        let mesh_b = Primitive::cube(Vector3::new(10.0, 10.0, 10.0), false).to_mesh();
+
+        // Export to temp files
+        let path_a = std::path::PathBuf::from("/tmp/test_mesh_a.stl");
+        let path_b = std::path::PathBuf::from("/tmp/test_mesh_b.stl");
+
+        crate::io::export_stl(&mesh_a, path_a.to_str().unwrap()).unwrap();
+        crate::io::export_stl(&mesh_b, path_b.to_str().unwrap()).unwrap();
+
+        let comparison = compare_stl_files(&path_a, &path_b).unwrap();
+
+        // Identical meshes should pass
+        assert!(comparison.passed);
+        assert_eq!(comparison.vertices_diff, 0.0);
+
+        // Cleanup
+        let _ = std::fs::remove_file(path_a);
+        let _ = std::fs::remove_file(path_b);
     }
 }
