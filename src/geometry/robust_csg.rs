@@ -201,22 +201,36 @@ fn has_curved_surfaces(mesh: &Mesh) -> bool {
         return false;
     }
 
-    // Sample some vertices and check normal variation
-    let mut normal_variations = Vec::new();
-    for i in 0..mesh.vertices.len().min(20) {
-        for j in (i + 1)..mesh.vertices.len().min(20) {
-            let dot = mesh.vertices[i].normal.dot(&mesh.vertices[j].normal);
-            normal_variations.push(dot);
+    // Strategy: Count approximately how many distinct normal directions exist
+    // Cubes have ~6 normals (faces), spheres have many smoothly varying normals
+
+    const EPSILON: f32 = 0.01;
+    let mut distinct_normals = vec![mesh.vertices[0].normal];
+    let sample_size = mesh.vertices.len().min(100);
+
+    for i in 1..sample_size {
+        let normal = &mesh.vertices[i].normal;
+        let mut is_new = true;
+
+        for existing in &distinct_normals {
+            if (normal - existing).norm() < EPSILON {
+                is_new = false;
+                break;
+            }
+        }
+
+        if is_new {
+            distinct_normals.push(*normal);
+        }
+
+        // Early exit: if we have many distinct normals, it's curved
+        if distinct_normals.len() > 12 {
+            return true;
         }
     }
 
-    if normal_variations.is_empty() {
-        return false;
-    }
-
-    // If we have high normal variation, it's likely curved
-    let avg = normal_variations.iter().sum::<f32>() / normal_variations.len() as f32;
-    avg < 0.9 // Normals vary significantly = curved surface
+    // Cubes have ~6 distinct normals, curved surfaces have many more
+    distinct_normals.len() > 12
 }
 
 #[cfg(test)]
