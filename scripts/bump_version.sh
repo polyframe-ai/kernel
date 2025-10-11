@@ -168,15 +168,11 @@ else
             next
         }
         /^\[Unreleased\]:/ {
-            # Update the version comparison links
+            # Update the Unreleased link and add new version link
             print "[Unreleased]: https://github.com/polyframe-ai/kernel/compare/v" version "...HEAD"
             print "[" version "]: https://github.com/polyframe-ai/kernel/compare/v" oldversion "...v" version
+            version_link_added = 1
             next
-        }
-        /^\[.*\]:/ && !printed_new_link {
-            # Insert new version link before other version links
-            print "[" version "]: https://github.com/polyframe-ai/kernel/compare/v" oldversion "...v" version
-            printed_new_link = 1
         }
         { print }
         ' CHANGELOG.md > "$TEMP_FILE"
@@ -238,7 +234,7 @@ fi
 # Step 4: Dry-run publish to crates.io
 echo ""
 info "Step 4/5: Validating crates.io package..."
-if cargo publish --dry-run; then
+if cargo publish --dry-run --allow-dirty; then
     success "Package validation successful"
 else
     error "Package validation failed. Please fix issues before releasing."

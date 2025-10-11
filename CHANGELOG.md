@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2025-10-11
 ### Added
 - Initial CI/CD pipeline with GitHub Actions
 - Automated release workflow for multi-platform builds
@@ -22,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Security audit job now uses direct `cargo-audit` installation
 - Tests now use `tempfile` crate for cross-platform temporary file handling
 - GitHub release permissions (403 errors) by adding explicit `contents: write` permissions
+
 
 ## [0.1.0] - 2025-10-11
 
@@ -55,6 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Third-party license notices
 - Provenance documentation
 
-[Unreleased]: https://github.com/polyframe-ai/kernel/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/polyframe-ai/kernel/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/polyframe-ai/kernel/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/polyframe-ai/kernel/releases/tag/v0.1.0
 
