@@ -16,6 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Updated package metadata in Cargo.toml
 
+### Fixed
+- Cross-platform compatibility in `comparator` tests (Windows CI support)
+- Security audit job now uses direct `cargo-audit` installation
+- Tests now use `tempfile` crate for cross-platform temporary file handling
+
 ## [0.1.0] - 2025-10-11
 
 ### Added

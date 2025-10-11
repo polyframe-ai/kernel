@@ -92,13 +92,16 @@ mod tests {
         // This is just a smoke test to ensure the integration works
         use crate::geometry::Primitive;
         use nalgebra::Vector3;
+        use tempfile::NamedTempFile;
 
         let mesh_a = Primitive::cube(Vector3::new(10.0, 10.0, 10.0), false).to_mesh();
         let mesh_b = Primitive::cube(Vector3::new(10.0, 10.0, 10.0), false).to_mesh();
 
-        // Export to temp files
-        let path_a = std::path::PathBuf::from("/tmp/test_mesh_a.stl");
-        let path_b = std::path::PathBuf::from("/tmp/test_mesh_b.stl");
+        // Create temp files with .stl extension (cross-platform)
+        let temp_file_a = NamedTempFile::new().unwrap();
+        let temp_file_b = NamedTempFile::new().unwrap();
+        let path_a = temp_file_a.path().with_extension("stl");
+        let path_b = temp_file_b.path().with_extension("stl");
 
         crate::io::export_stl(&mesh_a, path_a.to_str().unwrap()).unwrap();
         crate::io::export_stl(&mesh_b, path_b.to_str().unwrap()).unwrap();
@@ -110,7 +113,7 @@ mod tests {
         assert_eq!(comparison.vertices_diff, 0.0);
 
         // Cleanup
-        let _ = std::fs::remove_file(path_a);
-        let _ = std::fs::remove_file(path_b);
+        let _ = std::fs::remove_file(&path_a);
+        let _ = std::fs::remove_file(&path_b);
     }
 }
