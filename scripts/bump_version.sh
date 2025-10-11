@@ -122,7 +122,23 @@ if [ "$RETRY_MODE" = false ]; then
                     RETRY_MODE=true
                     warning "Retrying version ${NEW_VERSION}"
                 else
-                    error "No previous version attempt found to retry"
+                    echo ""
+                    error "No failed attempt detected to retry.
+
+Current state:
+  Cargo.toml version: ${CURRENT_VERSION}
+  CHANGELOG.md top version: ${LAST_ATTEMPTED:-none}
+
+Retry mode is only for re-attempting a failed version bump.
+Use it when:
+  • CHANGELOG.md was updated but tests failed
+  • You manually reverted Cargo.toml changes
+  • A previous bump attempt was interrupted
+
+To retry a specific version, use:
+  ./scripts/bump_version.sh VERSION
+
+To bump to a new version, choose patch/minor/major instead."
                 fi
             else
                 error "CHANGELOG.md not found, cannot determine retry version"
