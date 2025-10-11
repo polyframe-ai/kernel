@@ -169,7 +169,7 @@ fn ray_intersects_triangle(
     let s = origin - v0;
     let u = f * s.dot(&h);
 
-    if u < 0.0 || u > 1.0 {
+    if !(0.0..=1.0).contains(&u) {
         return false;
     }
 
