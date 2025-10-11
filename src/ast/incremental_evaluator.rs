@@ -138,7 +138,7 @@ impl IncrementalEvaluator {
             }
 
             NodeKind::Transform { op, children } => {
-                let new_transform = op.to_matrix() * transform;
+                let new_transform = transform * op.to_matrix();
 
                 if children.len() == 1 {
                     self.evaluate_node(&children[0].kind, &new_transform, &children[0].id)

@@ -57,7 +57,7 @@ impl ParallelEvaluator {
             }
 
             NodeKind::Transform { op, children } => {
-                let new_transform = op.to_matrix() * transform;
+                let new_transform = transform * op.to_matrix();
 
                 if children.len() == 1 {
                     Self::evaluate_node(&children[0].kind, &new_transform)
