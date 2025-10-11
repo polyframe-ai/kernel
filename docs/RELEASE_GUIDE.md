@@ -61,6 +61,9 @@ Run the script with the bump type:
 ./scripts/bump_version.sh patch   # 0.1.0 → 0.1.1
 ./scripts/bump_version.sh minor   # 0.1.0 → 0.2.0
 ./scripts/bump_version.sh major   # 0.1.0 → 1.0.0
+
+# Retry a specific version (if previous attempt failed)
+./scripts/bump_version.sh 0.1.1   # Retry version 0.1.1
 ```
 
 **The script will:**
@@ -80,8 +83,17 @@ Run the script with the bump type:
 **If validation fails:**
 - The script will stop and show the error
 - Fix the reported issues
-- Reset with: `git reset --hard HEAD~1 && git tag -d vX.X.X`
-- Run the script again
+- Reset with: `git reset --hard HEAD && git tag -d vX.X.X 2>/dev/null`
+- Run the script again with the same version:
+  ```bash
+  # Clean up the failed attempt
+  git reset --hard HEAD
+  git tag -d v0.1.1 2>/dev/null || true
+  
+  # Retry the same version
+  ./scripts/bump_version.sh 0.1.1
+  ```
+- Or in interactive mode, choose option 4 (retry)
 
 ### 3. Trigger Release
 

@@ -9,8 +9,10 @@
 # 5. Pushing to trigger the release workflow
 #
 # Usage:
-#   ./scripts/bump_version.sh [major|minor|patch]
+#   ./scripts/bump_version.sh [major|minor|patch|VERSION]
 #   ./scripts/bump_version.sh           # Interactive mode
+#   ./scripts/bump_version.sh 0.1.1     # Specific version (retry)
+#   ./scripts/bump_version.sh patch     # Bump patch version
 #
 # Prerequisites:
 #   - cargo (Rust toolchain)
@@ -65,43 +67,84 @@ info "Current version: ${CURRENT_VERSION}"
 # Parse current version
 IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
 
-# Determine bump type
+# Determine bump type or specific version
 BUMP_TYPE=$1
-if [ -z "$BUMP_TYPE" ]; then
+RETRY_MODE=false
+
+# Check if argument is a specific version (contains dots)
+if [[ "$BUMP_TYPE" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    NEW_VERSION="$BUMP_TYPE"
+    RETRY_MODE=true
+    warning "Retry mode: Setting version to ${NEW_VERSION}"
+    
+    # Validate it's not the current version
+    if [ "$NEW_VERSION" == "$CURRENT_VERSION" ]; then
+        error "Target version ${NEW_VERSION} is the same as current version"
+    fi
+    
+elif [ -z "$BUMP_TYPE" ]; then
     echo ""
     echo "Select version bump type:"
     echo "  1) patch (${MAJOR}.${MINOR}.$((PATCH + 1))) - Bug fixes"
     echo "  2) minor (${MAJOR}.$((MINOR + 1)).0) - New features (backward compatible)"
     echo "  3) major ($((MAJOR + 1)).0.0) - Breaking changes"
+    echo "  4) retry - Try the last attempted version again"
     echo ""
-    read -p "Enter choice [1-3]: " choice
+    read -p "Enter choice [1-4]: " choice
     
     case $choice in
         1) BUMP_TYPE="patch" ;;
         2) BUMP_TYPE="minor" ;;
         3) BUMP_TYPE="major" ;;
+        4) BUMP_TYPE="retry" ;;
         *) error "Invalid choice" ;;
     esac
 fi
 
-# Calculate new version
-case $BUMP_TYPE in
-    patch)
-        NEW_VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))"
-        ;;
-    minor)
-        NEW_VERSION="${MAJOR}.$((MINOR + 1)).0"
-        ;;
-    major)
-        NEW_VERSION="$((MAJOR + 1)).0.0"
-        ;;
-    *)
-        error "Invalid bump type. Use: major, minor, or patch"
-        ;;
-esac
+# Calculate new version based on bump type
+if [ "$RETRY_MODE" = false ]; then
+    case $BUMP_TYPE in
+        patch)
+            NEW_VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))"
+            ;;
+        minor)
+            NEW_VERSION="${MAJOR}.$((MINOR + 1)).0"
+            ;;
+        major)
+            NEW_VERSION="$((MAJOR + 1)).0.0"
+            ;;
+        retry)
+            # Find the most recent version in CHANGELOG that's > current
+            if [ -f "CHANGELOG.md" ]; then
+                LAST_ATTEMPTED=$(grep -E '## \[[0-9]+\.[0-9]+\.[0-9]+\]' CHANGELOG.md | head -1 | sed -E 's/.*\[([0-9]+\.[0-9]+\.[0-9]+)\].*/\1/')
+                if [ -n "$LAST_ATTEMPTED" ] && [ "$LAST_ATTEMPTED" != "$CURRENT_VERSION" ]; then
+                    NEW_VERSION="$LAST_ATTEMPTED"
+                    RETRY_MODE=true
+                    warning "Retrying version ${NEW_VERSION}"
+                else
+                    error "No previous version attempt found to retry"
+                fi
+            else
+                error "CHANGELOG.md not found, cannot determine retry version"
+            fi
+            ;;
+        *)
+            error "Invalid bump type. Use: major, minor, patch, or a specific version (e.g., 0.1.1)"
+            ;;
+    esac
+fi
 
 echo ""
-info "Bumping version: ${CURRENT_VERSION} → ${NEW_VERSION}"
+if [ "$RETRY_MODE" = true ]; then
+    warning "RETRY MODE: This will update files to version ${NEW_VERSION}"
+    warning "Make sure you've reverted any partial changes from the previous attempt"
+    echo ""
+    echo "To clean up a failed attempt, run:"
+    echo "  git reset --hard HEAD"
+    echo "  git tag -d v${NEW_VERSION} 2>/dev/null || true"
+else
+    info "Bumping version: ${CURRENT_VERSION} → ${NEW_VERSION}"
+fi
 echo ""
 
 # Confirm

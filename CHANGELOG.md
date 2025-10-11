@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Updated package metadata in Cargo.toml
 - Improved `bump_version.sh` to automatically bump version numbers and update CHANGELOG.md
+- Added retry mode to `bump_version.sh` for re-attempting failed version bumps
 
 ### Fixed
 - Cross-platform compatibility in `comparator` tests (Windows CI support)
