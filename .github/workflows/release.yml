@@ -107,18 +107,23 @@ jobs:
         include:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
+            platform: x86_64-linux-gnu
             archive: tar.gz
           - os: ubuntu-latest
             target: x86_64-unknown-linux-musl
+            platform: x86_64-linux-musl
             archive: tar.gz
           - os: macos-latest
             target: x86_64-apple-darwin
+            platform: x86_64-macos
             archive: tar.gz
           - os: macos-latest
             target: aarch64-apple-darwin
+            platform: aarch64-macos
             archive: tar.gz
           - os: windows-latest
             target: x86_64-pc-windows-msvc
+            platform: x86_64-windows
             archive: zip
     steps:
       - name: Checkout code
@@ -155,31 +160,31 @@ jobs:
         if: matrix.archive == 'tar.gz'
         run: |
           cd target/${{ matrix.target }}/release
-          tar czf ../../../polyframe-${{ needs.create-release.outputs.version }}-${{ matrix.target }}.tar.gz polyframe
+          tar czf ../../../polyframe-${{ needs.create-release.outputs.version }}-${{ matrix.platform }}.tar.gz polyframe
           cd ../../..
 
       - name: Create archive (Windows)
         if: matrix.archive == 'zip'
         run: |
           cd target/${{ matrix.target }}/release
-          7z a ../../../polyframe-${{ needs.create-release.outputs.version }}-${{ matrix.target }}.zip polyframe.exe
+          7z a ../../../polyframe-${{ needs.create-release.outputs.version }}-${{ matrix.platform }}.zip polyframe.exe
           cd ../../..
 
       - name: Generate checksum (Unix)
         if: matrix.archive == 'tar.gz'
         run: |
-          shasum -a 256 polyframe-${{ needs.create-release.outputs.version }}-${{ matrix.target }}.tar.gz > polyframe-${{ needs.create-release.outputs.version }}-${{ matrix.target }}.tar.gz.sha256
+          shasum -a 256 polyframe-${{ needs.create-release.outputs.version }}-${{ matrix.platform }}.tar.gz > polyframe-${{ needs.create-release.outputs.version }}-${{ matrix.platform }}.tar.gz.sha256
 
       - name: Generate checksum (Windows)
         if: matrix.archive == 'zip'
         run: |
-          $hash = (Get-FileHash polyframe-${{ needs.create-release.outputs.version }}-${{ matrix.target }}.zip -Algorithm SHA256).Hash.ToLower()
-          "$hash  polyframe-${{ needs.create-release.outputs.version }}-${{ matrix.target }}.zip" | Out-File -Encoding ASCII polyframe-${{ needs.create-release.outputs.version }}-${{ matrix.target }}.zip.sha256
+          $hash = (Get-FileHash polyframe-${{ needs.create-release.outputs.version }}-${{ matrix.platform }}.zip -Algorithm SHA256).Hash.ToLower()
+          "$hash  polyframe-${{ needs.create-release.outputs.version }}-${{ matrix.platform }}.zip" | Out-File -Encoding ASCII polyframe-${{ needs.create-release.outputs.version }}-${{ matrix.platform }}.zip.sha256
 
       - name: Upload release archive
         uses: actions/upload-artifact@v4
         with:
-          name: polyframe-${{ matrix.target }}
+          name: polyframe-${{ matrix.platform }}
           path: |
             polyframe-*.${{ matrix.archive }}
             polyframe-*.${{ matrix.archive }}.sha256
@@ -189,8 +194,8 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            polyframe-${{ needs.create-release.outputs.version }}-${{ matrix.target }}.tar.gz
-            polyframe-${{ needs.create-release.outputs.version }}-${{ matrix.target }}.tar.gz.sha256
+            polyframe-${{ needs.create-release.outputs.version }}-${{ matrix.platform }}.tar.gz
+            polyframe-${{ needs.create-release.outputs.version }}-${{ matrix.platform }}.tar.gz.sha256
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -199,8 +204,8 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            polyframe-${{ needs.create-release.outputs.version }}-${{ matrix.target }}.zip
-            polyframe-${{ needs.create-release.outputs.version }}-${{ matrix.target }}.zip.sha256
+            polyframe-${{ needs.create-release.outputs.version }}-${{ matrix.platform }}.zip
+            polyframe-${{ needs.create-release.outputs.version }}-${{ matrix.platform }}.zip.sha256
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
