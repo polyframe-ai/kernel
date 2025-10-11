@@ -17,26 +17,21 @@ For standard releases, use the automated script:
 
 ### 1. Prepare the Release
 
-#### Update Version Number
+The release script handles most of this automatically!
 
-Edit `Cargo.toml` and update the version:
-
-```toml
-[package]
-version = "0.2.0"  # Update this
-```
+#### Version Numbering
 
 Follow [Semantic Versioning](https://semver.org/):
-- **MAJOR** (0.x.0) - Breaking API changes
+- **MAJOR** (x.0.0) - Breaking API changes
 - **MINOR** (0.x.0) - New features, backward compatible
 - **PATCH** (0.0.x) - Bug fixes, backward compatible
 
 #### Update Changelog
 
-Add a new section to `CHANGELOG.md`:
+Before running the script, add your changes to the `[Unreleased]` section:
 
 ```markdown
-## [0.2.0] - 2025-10-15
+## [Unreleased]
 
 ### Added
 - New feature description
@@ -46,58 +41,62 @@ Add a new section to `CHANGELOG.md`:
 
 ### Fixed
 - Bug fixes
-
-### Deprecated
-- Features that will be removed
-
-### Removed
-- Removed features
-
-### Security
-- Security fixes
 ```
 
-#### Commit Changes
+**The script will automatically:**
+- Move `[Unreleased]` content to a new version section
+- Add the version number and date
+- Update version comparison links
+- Keep `[Unreleased]` section empty for future changes
+
+### 2. Run the Bump Script
+
+Run the script with the bump type:
 
 ```bash
-git add Cargo.toml Cargo.lock CHANGELOG.md
-git commit -m "Release v0.2.0"
-git push origin main
-```
-
-### 2. Run Pre-Release Validation
-
-The `bump_version.sh` script will automatically:
-
-```bash
+# Interactive mode (asks you to choose)
 ./scripts/bump_version.sh
+
+# Or specify directly
+./scripts/bump_version.sh patch   # 0.1.0 → 0.1.1
+./scripts/bump_version.sh minor   # 0.1.0 → 0.2.0
+./scripts/bump_version.sh major   # 0.1.0 → 1.0.0
 ```
 
-**What it does:**
-- ✅ Checks code formatting (`cargo fmt`)
-- ✅ Runs linting (`cargo clippy`)
-- ✅ Runs all tests (`cargo test`)
-- ✅ Validates crates.io package (`cargo publish --dry-run`)
-- ✅ Builds release binary
-- ✅ Creates git tag
-- ✅ Optionally pushes tag
+**The script will:**
+1. ✅ Show current version and calculate new version
+2. ✅ Update `Cargo.toml` with new version
+3. ✅ Update `Cargo.lock`
+4. ✅ **Automatically update `CHANGELOG.md`** (move Unreleased → versioned)
+5. ✅ Check code formatting (`cargo fmt`)
+6. ✅ Run linting (`cargo clippy`)
+7. ✅ Run all tests (`cargo test`)
+8. ✅ Validate crates.io package (`cargo publish --dry-run`)
+9. ✅ Build release binary
+10. ✅ Create commit: "Release vX.X.X"
+11. ✅ Create git tag
+12. ✅ Ask if you want to push
 
 **If validation fails:**
+- The script will stop and show the error
 - Fix the reported issues
-- Commit fixes
+- Reset with: `git reset --hard HEAD~1 && git tag -d vX.X.X`
 - Run the script again
 
 ### 3. Trigger Release
 
-When prompted by the script, choose to push the tag:
+When prompted by the script, choose to push:
 
 ```
-Do you want to push the tag now? (y/N) y
+Push commit and tag now? (y/N) y
 ```
 
-Or manually:
+This pushes both the commit and tag, triggering the release workflow.
+
+Or push manually later:
 
 ```bash
+git push origin main
 git push origin v0.2.0
 ```
 
