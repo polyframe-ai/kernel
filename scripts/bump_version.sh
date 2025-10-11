@@ -145,7 +145,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     success "Tag pushed! Release workflow started."
     echo ""
     info "Monitor the release progress at:"
-    echo "https://github.com/mihok/polyframe-kernel/actions"
+    echo "https://github.com/polyframe-ai/kernel/actions"
 else
     info "Tag not pushed. You can push it later with:"
     echo "    git push origin v${VERSION}"

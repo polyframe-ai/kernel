@@ -103,7 +103,7 @@ git push origin v0.2.0
 
 ### 4. Monitor Release Workflow
 
-1. Go to [GitHub Actions](https://github.com/mihok/polyframe-kernel/actions)
+1. Go to [GitHub Actions](https://github.com/polyframe-ai/kernel/actions)
 2. Watch the "Release" workflow
 3. The workflow will:
    - Run all tests
@@ -117,7 +117,7 @@ git push origin v0.2.0
 
 #### Check GitHub Release
 
-1. Visit [Releases](https://github.com/mihok/polyframe-kernel/releases)
+1. Visit [Releases](https://github.com/polyframe-ai/kernel/releases)
 2. Verify the new release is published
 3. Confirm binaries are attached:
    - `polyframe-0.2.0-x86_64-unknown-linux-gnu.tar.gz`
@@ -303,6 +303,6 @@ After releasing, verify:
 
 For issues or questions about the release process:
 - Check [CI/CD Documentation](./CI_CD.md)
-- Review [GitHub Actions logs](https://github.com/mihok/polyframe-kernel/actions)
+- Review [GitHub Actions logs](https://github.com/polyframe-ai/kernel/actions)
 - Open an issue with the `release` label
 

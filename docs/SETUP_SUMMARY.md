@@ -49,7 +49,7 @@ This document summarizes the complete CI/CD pipeline implementation for the Poly
 
 #### `Cargo.toml` Updates
 ```toml
-repository = "https://github.com/mihok/polyframe-kernel"
+repository = "https://github.com/polyframe-ai/kernel"
 homepage = "https://polyframe.dev"
 ```
 
@@ -110,7 +110,7 @@ Step-by-step release instructions:
 You need to configure this secret in GitHub repository settings:
 
 ### `CARGO_REGISTRY_TOKEN`
-**Location:** Settings → Secrets and variables → Actions
+**Location:** Repository Settings → Secrets and variables → Actions
 
 **How to obtain:**
 1. Visit [crates.io](https://crates.io/)
@@ -203,10 +203,10 @@ When you create a release tag, the workflow produces:
 ## 📊 Monitoring
 
 ### CI Status
-Monitor at: https://github.com/mihok/polyframe-kernel/actions
+Monitor at: https://github.com/polyframe-ai/kernel/actions
 
 ### Release Progress
-View releases at: https://github.com/mihok/polyframe-kernel/releases
+View releases at: https://github.com/polyframe-ai/kernel/releases
 
 ### crates.io Package
 Check at: https://crates.io/crates/polyframe
@@ -217,7 +217,7 @@ Users can verify downloaded binaries:
 
 ```bash
 # Download checksums
-curl -LO https://github.com/mihok/polyframe-kernel/releases/download/v0.1.0/SHA256SUMS.txt
+curl -LO https://github.com/polyframe-ai/kernel/releases/download/v0.1.0/SHA256SUMS.txt
 
 # Verify downloaded binary
 shasum -a 256 -c SHA256SUMS.txt --ignore-missing

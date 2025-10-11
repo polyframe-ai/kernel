@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Cross-platform compatibility in `comparator` tests (Windows CI support)
 - Security audit job now uses direct `cargo-audit` installation
 - Tests now use `tempfile` crate for cross-platform temporary file handling
+- GitHub release permissions (403 errors) by adding explicit `contents: write` permissions
 
 ## [0.1.0] - 2025-10-11
 
@@ -53,6 +54,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Third-party license notices
 - Provenance documentation
 
-[Unreleased]: https://github.com/mihok/polyframe-kernel/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/mihok/polyframe-kernel/releases/tag/v0.1.0
+[Unreleased]: https://github.com/polyframe-ai/kernel/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/polyframe-ai/kernel/releases/tag/v0.1.0
 

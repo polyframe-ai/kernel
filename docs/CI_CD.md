@@ -168,7 +168,7 @@ git push origin v0.2.0
 
 Once the tag is pushed:
 
-1. **Monitor GitHub Actions**: Check the [Actions tab](https://github.com/mihok/polyframe-kernel/actions) for workflow progress
+1. **Monitor GitHub Actions**: Check the [Actions tab](https://github.com/polyframe-ai/kernel/actions) for workflow progress
 2. **Verify Release**: Check that binaries are uploaded to the GitHub Release
 3. **Verify crates.io**: Confirm the package appears on [crates.io/crates/polyframe](https://crates.io/crates/polyframe)
 4. **Test Installation**:
@@ -211,7 +211,7 @@ To verify downloaded binaries:
 
 ```bash
 # Download SHA256SUMS.txt from the release
-curl -LO https://github.com/mihok/polyframe-kernel/releases/download/v0.1.0/SHA256SUMS.txt
+curl -LO https://github.com/polyframe-ai/kernel/releases/download/v0.1.0/SHA256SUMS.txt
 
 # Verify a downloaded binary
 sha256sum -c SHA256SUMS.txt --ignore-missing
@@ -275,7 +275,7 @@ Ensure the Rust toolchain supports the target and any required cross-compilation
 ## Support
 
 For issues with the CI/CD pipeline, please:
-1. Check the [Actions tab](https://github.com/mihok/polyframe-kernel/actions) for error logs
+1. Check the [Actions tab](https://github.com/polyframe-ai/kernel/actions) for error logs
 2. Review this documentation
 3. Open an issue with the `ci/cd` label
 
