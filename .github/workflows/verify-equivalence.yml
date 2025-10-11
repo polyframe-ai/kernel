@@ -91,11 +91,11 @@ jobs:
 
       - name: Run JSON Exercise Suite (001-040)
         run: |
-          xvfb-run -a ./target/release/polyframe --verbose eval evaluation/assets/polyframe_exercises_001_040.json --out evaluation/results_001_040
+          xvfb-run -a ./target/release/polyframe --verbose eval tests/fixtures/polyframe_exercises_001_040.json --out evaluation/results_001_040
 
       - name: Run JSON Exercise Suite (041-100)
         run: |
-          xvfb-run -a ./target/release/polyframe --verbose eval evaluation/assets/polyframe_exercises_041_100.json --out evaluation/results_041_100
+          xvfb-run -a ./target/release/polyframe --verbose eval tests/fixtures/polyframe_exercises_041_100.json --out evaluation/results_041_100
 
       - name: Upload Evaluation Reports
         if: always()
