@@ -197,9 +197,8 @@ impl Reporter {
                         result.comparison.vertex_count_openscad
                     ));
                     md.push_str(&format!(
-                        "  - ΔVertices: {:.2}% (threshold: {:.2}%)\n",
-                        result.comparison.vertices_diff * 100.0,
-                        super::comparator::VERTEX_TOL * 100.0
+                        "  - ΔVertices: {:.2}% (dynamic threshold based on operation type)\n",
+                        result.comparison.vertices_diff * 100.0
                     ));
                     md.push_str(&format!(
                         "  - ΔBBox: {:.5} (threshold: {:.5})\n",

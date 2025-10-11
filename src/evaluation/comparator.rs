@@ -8,8 +8,7 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::path::Path;
 
-/// Tolerance constants
-pub const VERTEX_TOL: f32 = 0.01; // 1%
+/// Tolerance constants (passed to MeshDiff::compare)
 pub const BBOX_TOL: f32 = 1e-5;
 
 /// Comparison result
@@ -28,7 +27,7 @@ pub struct Comparison {
 
 /// Compare two STL files
 pub fn compare_stl_files(polyframe_path: &Path, openscad_path: &Path) -> Result<Comparison> {
-    use crate::cli::Runner;
+    use crate::cli::{MeshDiff, Runner};
 
     let runner = Runner::new();
 
@@ -36,59 +35,25 @@ pub fn compare_stl_files(polyframe_path: &Path, openscad_path: &Path) -> Result<
     let poly_mesh = runner.load_stl(polyframe_path)?;
     let openscad_mesh = runner.load_stl(openscad_path)?;
 
-    // Calculate differences
-    let vertices_diff = calc_diff_ratio(poly_mesh.vertex_count(), openscad_mesh.vertex_count());
-
-    let triangles_diff =
-        calc_diff_ratio(poly_mesh.triangle_count(), openscad_mesh.triangle_count());
-
-    // Bounding box comparison
-    let poly_bbox = poly_mesh.bounding_box();
-    let openscad_bbox = openscad_mesh.bounding_box();
-    let bbox_diff = calc_bbox_diff(&poly_bbox, &openscad_bbox);
+    // Use the same comparison logic as the compare command (with sophisticated tolerances)
+    let comparison_result = MeshDiff::compare(&poly_mesh, &openscad_mesh, BBOX_TOL);
 
     // Checksum comparison
     let poly_checksum = calc_mesh_checksum(&poly_mesh);
     let openscad_checksum = calc_mesh_checksum(&openscad_mesh);
     let checksum_match = poly_checksum == openscad_checksum;
 
-    // Determine pass/fail
-    let passed = vertices_diff < VERTEX_TOL && bbox_diff < BBOX_TOL;
-
     Ok(Comparison {
-        vertices_diff,
-        triangles_diff,
-        bbox_diff,
+        vertices_diff: comparison_result.vertex_delta as f32,
+        triangles_diff: comparison_result.triangle_delta as f32,
+        bbox_diff: comparison_result.bbox_delta as f32,
         checksum_match,
-        passed,
+        passed: comparison_result.passed,
         vertex_count_poly: poly_mesh.vertex_count(),
         vertex_count_openscad: openscad_mesh.vertex_count(),
         triangle_count_poly: poly_mesh.triangle_count(),
         triangle_count_openscad: openscad_mesh.triangle_count(),
     })
-}
-
-/// Calculate ratio difference between two counts
-fn calc_diff_ratio(a: usize, b: usize) -> f32 {
-    if a == 0 && b == 0 {
-        return 0.0;
-    }
-
-    let max = a.max(b) as f32;
-    let diff = (a as i64 - b as i64).abs() as f32;
-
-    diff / max
-}
-
-/// Calculate bounding box difference
-fn calc_bbox_diff(
-    bbox_a: &crate::geometry::BoundingBox,
-    bbox_b: &crate::geometry::BoundingBox,
-) -> f32 {
-    let min_dist = (bbox_a.min - bbox_b.min).norm();
-    let max_dist = (bbox_a.max - bbox_b.max).norm();
-
-    (min_dist + max_dist) / 2.0
 }
 
 /// Calculate SHA256 checksum of mesh data
