@@ -306,8 +306,8 @@ pub fn csg_union(a: &Mesh, b: &Mesh) -> Result<Mesh> {
     Ok(result)
 }
 
-/// Perform CSG difference using BSP trees
-pub fn csg_difference(a: &Mesh, b: &Mesh) -> Result<Mesh> {
+/// Internal BSP-based difference (called by robust implementation)
+pub(crate) fn csg_difference_bsp_internal(a: &Mesh, b: &Mesh) -> Result<Mesh> {
     let polys_a = mesh_to_polygons(a);
     let polys_b = mesh_to_polygons(b);
 
@@ -329,6 +329,13 @@ pub fn csg_difference(a: &Mesh, b: &Mesh) -> Result<Mesh> {
     result_polys.extend(tree_b.all_polygons());
 
     Ok(polygons_to_mesh(&result_polys))
+}
+
+/// Perform CSG difference using BSP trees
+/// Note: This now uses robust implementation with fallback logic.
+pub fn csg_difference(a: &Mesh, b: &Mesh) -> Result<Mesh> {
+    // Use robust implementation which has BSP + winding number fallback
+    super::robust_csg::robust_difference(a, b)
 }
 
 /// Perform CSG intersection using BSP trees
