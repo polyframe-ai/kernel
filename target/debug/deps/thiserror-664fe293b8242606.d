@@ -1,0 +1,14 @@
+/Users/mihok/Development/src/github.com/mihok/polyframe-kernel/target/debug/deps/thiserror-664fe293b8242606.d: /Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.17/src/lib.rs /Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.17/src/aserror.rs /Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.17/src/display.rs /Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.17/src/var.rs /Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.17/src/private.rs /Users/mihok/Development/src/github.com/mihok/polyframe-kernel/target/debug/build/thiserror-83c7ec73a31cd1e9/out/private.rs
+
+/Users/mihok/Development/src/github.com/mihok/polyframe-kernel/target/debug/deps/libthiserror-664fe293b8242606.rlib: /Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.17/src/lib.rs /Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.17/src/aserror.rs /Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.17/src/display.rs /Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.17/src/var.rs /Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.17/src/private.rs /Users/mihok/Development/src/github.com/mihok/polyframe-kernel/target/debug/build/thiserror-83c7ec73a31cd1e9/out/private.rs
+
+/Users/mihok/Development/src/github.com/mihok/polyframe-kernel/target/debug/deps/libthiserror-664fe293b8242606.rmeta: /Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.17/src/lib.rs /Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.17/src/aserror.rs /Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.17/src/display.rs /Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.17/src/var.rs /Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.17/src/private.rs /Users/mihok/Development/src/github.com/mihok/polyframe-kernel/target/debug/build/thiserror-83c7ec73a31cd1e9/out/private.rs
+
+/Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.17/src/lib.rs:
+/Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.17/src/aserror.rs:
+/Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.17/src/display.rs:
+/Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.17/src/var.rs:
+/Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.17/src/private.rs:
+/Users/mihok/Development/src/github.com/mihok/polyframe-kernel/target/debug/build/thiserror-83c7ec73a31cd1e9/out/private.rs:
+
+# env-dep:OUT_DIR=/Users/mihok/Development/src/github.com/mihok/polyframe-kernel/target/debug/build/thiserror-83c7ec73a31cd1e9/out

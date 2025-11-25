@@ -1,0 +1,12 @@
+/Users/mihok/Development/src/github.com/mihok/polyframe-kernel/target/debug/deps/half-db3144fd7cb30fd7.d: /Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/half-2.7.0/src/lib.rs /Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/half-2.7.0/src/bfloat.rs /Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/half-2.7.0/src/bfloat/convert.rs /Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/half-2.7.0/src/binary16.rs /Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/half-2.7.0/src/binary16/arch.rs /Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/half-2.7.0/src/binary16/arch/aarch64.rs /Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/half-2.7.0/src/leading_zeros.rs /Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/half-2.7.0/src/slice.rs
+
+/Users/mihok/Development/src/github.com/mihok/polyframe-kernel/target/debug/deps/libhalf-db3144fd7cb30fd7.rmeta: /Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/half-2.7.0/src/lib.rs /Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/half-2.7.0/src/bfloat.rs /Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/half-2.7.0/src/bfloat/convert.rs /Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/half-2.7.0/src/binary16.rs /Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/half-2.7.0/src/binary16/arch.rs /Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/half-2.7.0/src/binary16/arch/aarch64.rs /Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/half-2.7.0/src/leading_zeros.rs /Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/half-2.7.0/src/slice.rs
+
+/Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/half-2.7.0/src/lib.rs:
+/Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/half-2.7.0/src/bfloat.rs:
+/Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/half-2.7.0/src/bfloat/convert.rs:
+/Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/half-2.7.0/src/binary16.rs:
+/Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/half-2.7.0/src/binary16/arch.rs:
+/Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/half-2.7.0/src/binary16/arch/aarch64.rs:
+/Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/half-2.7.0/src/leading_zeros.rs:
+/Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/half-2.7.0/src/slice.rs:

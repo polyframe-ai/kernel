@@ -1,0 +1,95 @@
+// OpenSCAD Grammar for Pest Parser
+
+WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
+COMMENT = _{ "//" ~ (!"\n" ~ ANY)* ~ "\n" | "/*" ~ (!"*/" ~ ANY)* ~ "*/" }
+
+// Numbers
+number = @{ "-"? ~ ("0" | ASCII_NONZERO_DIGIT ~ ASCII_DIGIT*) ~ ("." ~ ASCII_DIGIT+)? ~ (^"e" ~ ("+" | "-")? ~ ASCII_DIGIT+)? }
+
+// Identifiers (allow $ prefix for OpenSCAD special variables)
+ident = @{ "$"? ~ ASCII_ALPHA ~ (ASCII_ALPHANUMERIC | "_")* }
+
+// Literals
+boolean = { "true" | "false" }
+string = ${ "\"" ~ string_inner ~ "\"" }
+string_inner = @{ (!("\"" | "\\") ~ ANY | "\\" ~ ANY)* }
+
+// Vectors and arrays
+vector = { "[" ~ expr_list? ~ "]" }
+expr_list = { expr ~ ("," ~ expr)* }
+
+// Expressions
+expr = { 
+    number | 
+    boolean | 
+    string | 
+    vector | 
+    ident |
+    function_call |
+    "(" ~ expr ~ ")"
+}
+
+// Function calls and parameters
+function_call = { ident ~ "(" ~ param_list? ~ ")" }
+param_list = { param ~ ("," ~ param)* }
+param = { (ident ~ "=")? ~ expr }
+
+// Statements
+statement = {
+    primitive_stmt |
+    transform_stmt |
+    boolean_stmt |
+    module_call |
+    variable_assignment
+}
+
+// Variable assignment
+variable_assignment = { ident ~ "=" ~ expr ~ ";" }
+
+// Primitives
+primitive_stmt = {
+    cube_stmt |
+    sphere_stmt |
+    cylinder_stmt |
+    cone_stmt
+}
+
+cube_stmt = { "cube" ~ "(" ~ param_list? ~ ")" ~ ";" }
+sphere_stmt = { "sphere" ~ "(" ~ param_list? ~ ")" ~ ";" }
+cylinder_stmt = { "cylinder" ~ "(" ~ param_list? ~ ")" ~ ";" }
+cone_stmt = { "cylinder" ~ "(" ~ param_list? ~ ")" ~ ";" }
+
+// Transformations
+transform_stmt = {
+    translate_stmt |
+    rotate_stmt |
+    scale_stmt |
+    mirror_stmt
+}
+
+translate_stmt = { "translate" ~ "(" ~ param_list ~ ")" ~ block_or_stmt }
+rotate_stmt = { "rotate" ~ "(" ~ param_list ~ ")" ~ block_or_stmt }
+scale_stmt = { "scale" ~ "(" ~ param_list ~ ")" ~ block_or_stmt }
+mirror_stmt = { "mirror" ~ "(" ~ param_list ~ ")" ~ block_or_stmt }
+
+// Boolean operations
+boolean_stmt = {
+    union_stmt |
+    difference_stmt |
+    intersection_stmt
+}
+
+union_stmt = { "union" ~ "(" ~ ")" ~ block }
+difference_stmt = { "difference" ~ "(" ~ ")" ~ block }
+intersection_stmt = { "intersection" ~ "(" ~ ")" ~ block }
+
+// Module call (generic)
+module_call = { ident ~ "(" ~ param_list? ~ ")" ~ (block_or_stmt)? }
+
+// Blocks
+block = { "{" ~ statement* ~ "}" }
+block_or_stmt = { block | statement }
+
+// Program
+program = { SOI ~ statement* ~ EOI }
+

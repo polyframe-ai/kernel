@@ -1,0 +1,311 @@
+[
+  {
+    "id": "001_basic_cube",
+    "title": "Basic Cube - Simple cube primitive",
+    "input": "cube([10, 10, 10]);",
+    "validation": {
+      "vertex_count": 24,
+      "triangle_count": 12
+    }
+  },
+  {
+    "id": "002_centered_cube",
+    "title": "Centered Cube - Cube with center=true",
+    "input": "cube([20, 20, 20], center=true);",
+    "validation": {
+      "vertex_count": 24,
+      "triangle_count": 12
+    }
+  },
+  {
+    "id": "003_sphere_basic",
+    "title": "Basic Sphere",
+    "input": "sphere(r=10);",
+    "validation": null
+  },
+  {
+    "id": "004_cylinder_basic",
+    "title": "Basic Cylinder",
+    "input": "cylinder(h=20, r=5);",
+    "validation": null
+  },
+  {
+    "id": "005_translate_cube",
+    "title": "Translated Cube",
+    "input": "translate([10, 0, 0]) cube([5, 5, 5]);",
+    "validation": {
+      "vertex_count": 24,
+      "triangle_count": 12
+    }
+  },
+  {
+    "id": "006_rotate_cube",
+    "title": "Rotated Cube",
+    "input": "rotate([0, 45, 0]) cube([10, 10, 10]);",
+    "validation": {
+      "vertex_count": 24,
+      "triangle_count": 12
+    }
+  },
+  {
+    "id": "007_scale_cube",
+    "title": "Scaled Cube",
+    "input": "scale([2, 1, 1]) cube([5, 5, 5]);",
+    "validation": {
+      "vertex_count": 24,
+      "triangle_count": 12
+    }
+  },
+  {
+    "id": "008_union_two_cubes",
+    "title": "Union of Two Cubes",
+    "input": "union() { cube([10, 10, 10]); translate([8, 0, 0]) cube([10, 10, 10]); }",
+    "validation": null
+  },
+  {
+    "id": "009_difference_cube_sphere",
+    "title": "Difference - Cube minus Sphere",
+    "input": "difference() { cube([20, 20, 20]); translate([10, 10, 10]) sphere(r=12); }",
+    "validation": null
+  },
+  {
+    "id": "010_nested_transforms",
+    "title": "Nested Transformations",
+    "input": "translate([5, 0, 0]) rotate([0, 45, 0]) scale([1, 1, 2]) cube([10, 10, 10]);",
+    "validation": {
+      "vertex_count": 24,
+      "triangle_count": 12
+    }
+  },
+  {
+    "id": "011_large_cube",
+    "title": "Large Cube",
+    "input": "cube([100, 100, 100]);",
+    "validation": {
+      "vertex_count": 24,
+      "triangle_count": 12
+    }
+  },
+  {
+    "id": "012_small_cube",
+    "title": "Small Cube",
+    "input": "cube([1, 1, 1]);",
+    "validation": {
+      "vertex_count": 24,
+      "triangle_count": 12
+    }
+  },
+  {
+    "id": "013_rectangular_box",
+    "title": "Rectangular Box",
+    "input": "cube([20, 10, 5]);",
+    "validation": {
+      "vertex_count": 24,
+      "triangle_count": 12
+    }
+  },
+  {
+    "id": "014_sphere_high_res",
+    "title": "High Resolution Sphere",
+    "input": "sphere(r=10, $fn=64);",
+    "validation": null
+  },
+  {
+    "id": "015_sphere_low_res",
+    "title": "Low Resolution Sphere",
+    "input": "sphere(r=10, $fn=16);",
+    "validation": null
+  },
+  {
+    "id": "016_cylinder_tall",
+    "title": "Tall Cylinder",
+    "input": "cylinder(h=50, r=5, $fn=32);",
+    "validation": null
+  },
+  {
+    "id": "017_cylinder_wide",
+    "title": "Wide Cylinder",
+    "input": "cylinder(h=10, r=20, $fn=32);",
+    "validation": null
+  },
+  {
+    "id": "018_cone_basic",
+    "title": "Basic Cone",
+    "input": "cylinder(h=20, r1=10, r2=0, $fn=32);",
+    "validation": null
+  },
+  {
+    "id": "019_translate_x",
+    "title": "Translate X axis",
+    "input": "translate([15, 0, 0]) cube([10, 10, 10]);",
+    "validation": {
+      "vertex_count": 24,
+      "triangle_count": 12
+    }
+  },
+  {
+    "id": "020_translate_y",
+    "title": "Translate Y axis",
+    "input": "translate([0, 15, 0]) cube([10, 10, 10]);",
+    "validation": {
+      "vertex_count": 24,
+      "triangle_count": 12
+    }
+  },
+  {
+    "id": "021_translate_z",
+    "title": "Translate Z axis",
+    "input": "translate([0, 0, 15]) cube([10, 10, 10]);",
+    "validation": {
+      "vertex_count": 24,
+      "triangle_count": 12
+    }
+  },
+  {
+    "id": "022_rotate_x",
+    "title": "Rotate around X axis",
+    "input": "rotate([90, 0, 0]) cube([10, 10, 10]);",
+    "validation": {
+      "vertex_count": 24,
+      "triangle_count": 12
+    }
+  },
+  {
+    "id": "023_rotate_y",
+    "title": "Rotate around Y axis",
+    "input": "rotate([0, 90, 0]) cube([10, 10, 10]);",
+    "validation": {
+      "vertex_count": 24,
+      "triangle_count": 12
+    }
+  },
+  {
+    "id": "024_rotate_z",
+    "title": "Rotate around Z axis",
+    "input": "rotate([0, 0, 90]) cube([10, 10, 10]);",
+    "validation": {
+      "vertex_count": 24,
+      "triangle_count": 12
+    }
+  },
+  {
+    "id": "025_scale_uniform",
+    "title": "Uniform Scale",
+    "input": "scale([2, 2, 2]) cube([5, 5, 5]);",
+    "validation": {
+      "vertex_count": 24,
+      "triangle_count": 12
+    }
+  },
+  {
+    "id": "026_scale_non_uniform",
+    "title": "Non-uniform Scale",
+    "input": "scale([3, 1, 2]) cube([5, 5, 5]);",
+    "validation": {
+      "vertex_count": 24,
+      "triangle_count": 12
+    }
+  },
+  {
+    "id": "027_mirror_x",
+    "title": "Mirror across X",
+    "input": "mirror([1, 0, 0]) translate([5, 0, 0]) cube([10, 10, 10]);",
+    "validation": {
+      "vertex_count": 24,
+      "triangle_count": 12
+    }
+  },
+  {
+    "id": "028_mirror_y",
+    "title": "Mirror across Y",
+    "input": "mirror([0, 1, 0]) translate([0, 5, 0]) cube([10, 10, 10]);",
+    "validation": {
+      "vertex_count": 24,
+      "triangle_count": 12
+    }
+  },
+  {
+    "id": "029_mirror_z",
+    "title": "Mirror across Z",
+    "input": "mirror([0, 0, 1]) translate([0, 0, 5]) cube([10, 10, 10]);",
+    "validation": {
+      "vertex_count": 24,
+      "triangle_count": 12
+    }
+  },
+  {
+    "id": "030_union_three_cubes",
+    "title": "Union of Three Cubes",
+    "input": "union() { cube([10, 10, 10]); translate([9, 0, 0]) cube([10, 10, 10]); translate([18, 0, 0]) cube([10, 10, 10]); }",
+    "validation": null
+  },
+  {
+    "id": "031_union_mixed_shapes",
+    "title": "Union - Mixed Shapes",
+    "input": "union() { cube([10, 10, 10]); translate([0, 12, 0]) sphere(r=5); translate([0, 0, 12]) cylinder(h=10, r=3); }",
+    "validation": null
+  },
+  {
+    "id": "032_difference_simple",
+    "title": "Simple Difference",
+    "input": "difference() { cube([15, 15, 15]); translate([7.5, 7.5, 7.5]) sphere(r=8); }",
+    "validation": null
+  },
+  {
+    "id": "033_difference_multiple",
+    "title": "Multiple Differences",
+    "input": "difference() { cube([20, 20, 20]); translate([5, 5, -1]) cylinder(h=22, r=2); translate([15, 5, -1]) cylinder(h=22, r=2); translate([5, 15, -1]) cylinder(h=22, r=2); }",
+    "validation": null
+  },
+  {
+    "id": "034_intersection_cube_sphere",
+    "title": "Intersection - Cube and Sphere",
+    "input": "intersection() { cube([20, 20, 20]); translate([10, 10, 10]) sphere(r=12); }",
+    "validation": null
+  },
+  {
+    "id": "035_complex_nested",
+    "title": "Complex Nested Operations",
+    "input": "union() { difference() { cube([20, 20, 20]); translate([10, 10, 10]) sphere(r=8); } translate([0, 0, 20]) cylinder(h=10, r=5); }",
+    "validation": null
+  },
+  {
+    "id": "036_transform_chain",
+    "title": "Transform Chain",
+    "input": "translate([10, 0, 0]) rotate([0, 0, 45]) translate([5, 0, 0]) cube([8, 8, 8]);",
+    "validation": {
+      "vertex_count": 24,
+      "triangle_count": 12
+    }
+  },
+  {
+    "id": "037_multi_scale",
+    "title": "Multiple Scale Operations",
+    "input": "scale([1.5, 1.5, 1.5]) scale([2, 1, 1]) cube([5, 5, 5]);",
+    "validation": {
+      "vertex_count": 24,
+      "triangle_count": 12
+    }
+  },
+  {
+    "id": "038_rotate_multi_axis",
+    "title": "Multi-axis Rotation",
+    "input": "rotate([45, 45, 45]) cube([10, 10, 10]);",
+    "validation": {
+      "vertex_count": 24,
+      "triangle_count": 12
+    }
+  },
+  {
+    "id": "039_hollow_box",
+    "title": "Hollow Box",
+    "input": "difference() { cube([20, 20, 20]); translate([2, 2, 2]) cube([16, 16, 16]); }",
+    "validation": null
+  },
+  {
+    "id": "040_pyramidal_shape",
+    "title": "Pyramidal Shape - Cone",
+    "input": "cylinder(h=30, r1=15, r2=0, $fn=4);",
+    "validation": null
+  }
+]

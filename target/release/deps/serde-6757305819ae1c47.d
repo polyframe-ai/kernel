@@ -1,0 +1,14 @@
+/Users/mihok/Development/src/github.com/mihok/polyframe-kernel/target/release/deps/serde-6757305819ae1c47.d: /Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /Users/mihok/Development/src/github.com/mihok/polyframe-kernel/target/release/build/serde-39593c81d28a1a8b/out/private.rs
+
+/Users/mihok/Development/src/github.com/mihok/polyframe-kernel/target/release/deps/libserde-6757305819ae1c47.rlib: /Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /Users/mihok/Development/src/github.com/mihok/polyframe-kernel/target/release/build/serde-39593c81d28a1a8b/out/private.rs
+
+/Users/mihok/Development/src/github.com/mihok/polyframe-kernel/target/release/deps/libserde-6757305819ae1c47.rmeta: /Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /Users/mihok/Development/src/github.com/mihok/polyframe-kernel/target/release/build/serde-39593c81d28a1a8b/out/private.rs
+
+/Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs:
+/Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs:
+/Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs:
+/Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs:
+/Users/mihok/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs:
+/Users/mihok/Development/src/github.com/mihok/polyframe-kernel/target/release/build/serde-39593c81d28a1a8b/out/private.rs:
+
+# env-dep:OUT_DIR=/Users/mihok/Development/src/github.com/mihok/polyframe-kernel/target/release/build/serde-39593c81d28a1a8b/out

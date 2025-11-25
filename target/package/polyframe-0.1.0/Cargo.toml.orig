@@ -1,0 +1,79 @@
+[package]
+name = "polyframe"
+version = "0.1.0"
+edition = "2021"
+authors = ["Polyframe Team"]
+license = "Apache-2.0"
+description = "Polyframe: OpenSCAD-style parametric CAD kernel in Rust"
+repository = "https://github.com/mihok/polyframe-kernel"
+homepage = "https://polyframe.dev"
+readme = "README.md"
+keywords = ["cad", "csg", "geometry", "openscad", "rust"]
+categories = ["graphics", "rendering", "algorithms"]
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[[bin]]
+name = "polyframe"
+path = "src/bin/cli.rs"
+
+[dependencies]
+# Parser
+pest = "2.7"
+pest_derive = "2.7"
+
+# Math and geometry
+nalgebra = { version = "0.33", features = ["serde-serialize"] }
+parry3d = "0.16"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# I/O
+stl_io = "0.7"
+thiserror = "1.0"
+anyhow = "1.0"
+zip = "2.1"
+quick-xml = { version = "0.36", features = ["serialize"] }
+gltf-json = "1.4"
+base64 = "0.22"
+
+# FFI/WASM
+wasm-bindgen = { version = "0.2", optional = true }
+napi = { version = "2.16", features = ["full"], optional = true }
+napi-derive = { version = "2.16", optional = true }
+
+# CLI
+clap = { version = "4.5", features = ["derive"] }
+colored = "2.1"
+indicatif = "0.17"
+
+# Utilities
+rayon = "1.10"
+ahash = "0.8"
+dashmap = "6.0"
+tempfile = "3.10"
+walkdir = "2.5"
+sha2 = "0.10"
+chrono = "0.4"
+
+[dev-dependencies]
+criterion = { version = "0.5", features = ["html_reports"] }
+approx = "0.5"
+
+[features]
+default = []
+wasm = ["wasm-bindgen"]
+napi = ["dep:napi", "dep:napi-derive"]
+
+[[bench]]
+name = "performance"
+harness = false
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+

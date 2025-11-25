@@ -1,0 +1,10 @@
+# Rustfmt configuration for Polyframe Kernel
+
+# Edition (should match Cargo.toml)
+edition = "2021"
+
+# Stable settings only
+reorder_imports = true
+reorder_modules = false
+use_field_init_shorthand = true
+

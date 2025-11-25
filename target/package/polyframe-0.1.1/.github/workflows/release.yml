@@ -1,0 +1,259 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+  packages: write
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+      version: ${{ steps.get_version.outputs.version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get version from tag
+        id: get_version
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Extract changelog
+        id: changelog
+        run: |
+          if [ -f CHANGELOG.md ]; then
+            # Extract the section for this version
+            VERSION="${{ steps.get_version.outputs.version }}"
+            awk "/## \[${VERSION}\]/,/## \[/" CHANGELOG.md | sed '$d' > release_notes.md
+            if [ ! -s release_notes.md ]; then
+              echo "Release notes for version ${VERSION}" > release_notes.md
+            fi
+          else
+            echo "Release ${GITHUB_REF#refs/tags/}" > release_notes.md
+          fi
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          body_path: release_notes.md
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  test-before-release:
+    name: Pre-Release Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Cache Rust dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-release-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Check formatting
+        run: cargo fmt -- --check
+
+      - name: Run Clippy
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+      - name: Run all tests
+        run: cargo test --all --verbose
+
+      - name: Build release binary
+        run: cargo build --release
+
+      - name: Run integration tests
+        run: |
+          ./target/release/polyframe eval examples/ --out evaluation/results
+
+  build-release:
+    name: Build Release - ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    needs: [create-release, test-before-release]
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            archive: tar.gz
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+            archive: tar.gz
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            archive: tar.gz
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            archive: tar.gz
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            archive: zip
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Install musl tools (Linux musl only)
+        if: matrix.target == 'x86_64-unknown-linux-musl'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y musl-tools
+
+      - name: Cache Rust dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-${{ matrix.target }}-cargo-release-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.target }}-cargo-
+
+      - name: Build release binary
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Create archive (Unix)
+        if: matrix.archive == 'tar.gz'
+        run: |
+          cd target/${{ matrix.target }}/release
+          tar czf ../../../polyframe-${{ needs.create-release.outputs.version }}-${{ matrix.target }}.tar.gz polyframe
+          cd ../../..
+
+      - name: Create archive (Windows)
+        if: matrix.archive == 'zip'
+        run: |
+          cd target/${{ matrix.target }}/release
+          7z a ../../../polyframe-${{ needs.create-release.outputs.version }}-${{ matrix.target }}.zip polyframe.exe
+          cd ../../..
+
+      - name: Generate checksum (Unix)
+        if: matrix.archive == 'tar.gz'
+        run: |
+          shasum -a 256 polyframe-${{ needs.create-release.outputs.version }}-${{ matrix.target }}.tar.gz > polyframe-${{ needs.create-release.outputs.version }}-${{ matrix.target }}.tar.gz.sha256
+
+      - name: Generate checksum (Windows)
+        if: matrix.archive == 'zip'
+        run: |
+          $hash = (Get-FileHash polyframe-${{ needs.create-release.outputs.version }}-${{ matrix.target }}.zip -Algorithm SHA256).Hash.ToLower()
+          "$hash  polyframe-${{ needs.create-release.outputs.version }}-${{ matrix.target }}.zip" | Out-File -Encoding ASCII polyframe-${{ needs.create-release.outputs.version }}-${{ matrix.target }}.zip.sha256
+
+      - name: Upload release archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: polyframe-${{ matrix.target }}
+          path: |
+            polyframe-*.${{ matrix.archive }}
+            polyframe-*.${{ matrix.archive }}.sha256
+
+      - name: Attach to GitHub Release (Unix)
+        if: matrix.archive == 'tar.gz'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            polyframe-${{ needs.create-release.outputs.version }}-${{ matrix.target }}.tar.gz
+            polyframe-${{ needs.create-release.outputs.version }}-${{ matrix.target }}.tar.gz.sha256
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Attach to GitHub Release (Windows)
+        if: matrix.archive == 'zip'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            polyframe-${{ needs.create-release.outputs.version }}-${{ matrix.target }}.zip
+            polyframe-${{ needs.create-release.outputs.version }}-${{ matrix.target }}.zip.sha256
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-checksums:
+    name: Publish Combined Checksums
+    runs-on: ubuntu-latest
+    needs: [create-release, build-release]
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Combine checksums
+        run: |
+          cat polyframe-*/*.sha256 > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - name: Upload combined checksums
+        uses: softprops/action-gh-release@v1
+        with:
+          files: SHA256SUMS.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-crates:
+    name: Publish to crates.io
+    runs-on: ubuntu-latest
+    needs: [test-before-release, build-release]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-publish-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Verify build
+        run: cargo build --release
+
+      - name: Publish to crates.io
+        run: cargo publish --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
