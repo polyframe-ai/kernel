@@ -6,7 +6,7 @@
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 use polyframe::io;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 #[derive(Parser)]
 #[command(name = "polyframe-kernel")]
@@ -73,6 +73,10 @@ enum Commands {
         /// Verbose output
         #[arg(short, long)]
         verbose: bool,
+
+        /// Directory to store preview renders and visual diffs
+        #[arg(long)]
+        preview_dir: Option<String>,
     },
 
     /// Run evaluation harness on dataset
@@ -82,7 +86,7 @@ enum Commands {
         dataset: Vec<String>,
 
         /// Output directory for results
-        #[arg(short, long, default_value = "evaluation/results")]
+        #[arg(short, long, default_value = "tests/evaluation/results")]
         out: String,
     },
 
@@ -136,8 +140,9 @@ fn main() -> Result<()> {
             inputs,
             tolerance,
             verbose,
+            preview_dir,
         }) => {
-            compare_command(inputs, *tolerance, *verbose)?;
+            compare_command(inputs, *tolerance, *verbose, preview_dir.as_deref())?;
         }
         Some(Commands::Eval { dataset, out }) => {
             eval_command(dataset, out, cli.verbose)?;
@@ -273,8 +278,15 @@ fn render_command(
     Ok(())
 }
 
-fn compare_command(inputs: &[String], tolerance: f32, verbose: bool) -> Result<()> {
-    use polyframe::cli::{batch_compare, compare_with_openscad, Reporter};
+fn compare_command(
+    inputs: &[String],
+    tolerance: f32,
+    verbose: bool,
+    preview_dir: Option<&str>,
+) -> Result<()> {
+    use polyframe::cli::{batch_compare, compare_with_openscad, PreviewConfig, Reporter};
+
+    let preview_base = preview_dir.map(PathBuf::from);
 
     if inputs.len() == 1 {
         // Single file comparison
@@ -285,7 +297,11 @@ fn compare_command(inputs: &[String], tolerance: f32, verbose: bool) -> Result<(
             std::process::exit(1);
         }
 
-        let result = compare_with_openscad(input, tolerance, verbose)?;
+        let preview = preview_base
+            .as_ref()
+            .map(|root| PreviewConfig::for_input(root, input));
+
+        let result = compare_with_openscad(input, tolerance, verbose, preview)?;
 
         if !result.passed {
             std::process::exit(1);
@@ -293,8 +309,8 @@ fn compare_command(inputs: &[String], tolerance: f32, verbose: bool) -> Result<(
     } else {
         // Batch comparison
         let paths: Vec<&Path> = inputs.iter().map(|s| Path::new(s.as_str())).collect();
-
-        let results = batch_compare(&paths, tolerance, verbose)?;
+        let preview_root = preview_base.as_deref();
+        let results = batch_compare(&paths, tolerance, verbose, preview_root)?;
 
         let failed = results.iter().filter(|(_, r)| !r.passed).count();
         if failed > 0 {

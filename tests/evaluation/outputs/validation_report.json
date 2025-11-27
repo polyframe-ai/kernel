@@ -1,0 +1,446 @@
+{
+  "timestamp": "2025-11-26 14:38:58 UTC",
+  "total_suites": 4,
+  "total_tests": 27,
+  "total_passed": 13,
+  "total_failed": 10,
+  "total_skipped": 0,
+  "total_errors": 4,
+  "total_duration": 474.968081126,
+  "suite_results": [
+    {
+      "suite": "Unit",
+      "total": 2,
+      "passed": 1,
+      "failed": 1,
+      "skipped": 0,
+      "errors": 0,
+      "duration": 18.077409625,
+      "results": []
+    },
+    {
+      "suite": "Integration",
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "errors": 0,
+      "duration": 25.247639209,
+      "results": [
+        {
+          "Integration": {
+            "name": "integration tests",
+            "status": "Passed",
+            "duration": 0.0,
+            "error": null,
+            "file": null
+          }
+        }
+      ]
+    },
+    {
+      "suite": "Evaluation",
+      "total": 3,
+      "passed": 0,
+      "failed": 0,
+      "skipped": 0,
+      "errors": 3,
+      "duration": 0.008195958,
+      "results": [
+        {
+          "Evaluation": {
+            "model": "tests/fixtures/polyframe_exercises_041_100.json",
+            "status": "Error",
+            "duration": 0.003187208,
+            "comparison_passed": false,
+            "error": "Polyframe execution failed",
+            "metrics": null
+          }
+        },
+        {
+          "Evaluation": {
+            "model": "tests/fixtures/polyframe_exercises_001_040.json",
+            "status": "Error",
+            "duration": 0.000447333,
+            "comparison_passed": false,
+            "error": "Polyframe execution failed",
+            "metrics": null
+          }
+        },
+        {
+          "Evaluation": {
+            "model": "tests/fixtures/polyframe_exercises_101_150.json",
+            "status": "Error",
+            "duration": 0.000604708,
+            "comparison_passed": false,
+            "error": "Polyframe execution failed",
+            "metrics": null
+          }
+        }
+      ]
+    },
+    {
+      "suite": "Comparison",
+      "total": 21,
+      "passed": 11,
+      "failed": 9,
+      "skipped": 0,
+      "errors": 1,
+      "duration": 431.634836334,
+      "results": [
+        {
+          "Comparison": {
+            "file": "examples/complex/demo.scad",
+            "status": "Failed",
+            "duration": 11.336048,
+            "comparison_passed": false,
+            "vertex_delta": 0.8469388,
+            "triangle_delta": 0.8469388,
+            "visual_diff_delta": 45.233788,
+            "polyframe_preview": "tests/evaluation/outputs/previews/examples_complex_demo_scad/polyframe.png",
+            "openscad_preview": "tests/evaluation/outputs/previews/examples_complex_demo_scad/openscad.png",
+            "diff_preview": "tests/evaluation/outputs/previews/examples_complex_demo_scad/diff.png",
+            "polyframe_stl": "tests/evaluation/outputs/previews/examples_complex_demo_scad/polyframe.stl",
+            "openscad_stl": "tests/evaluation/outputs/previews/examples_complex_demo_scad/openscad.stl",
+            "error": null
+          }
+        },
+        {
+          "Comparison": {
+            "file": "examples/complex/transform.scad",
+            "status": "Passed",
+            "duration": 1.523871875,
+            "comparison_passed": true,
+            "vertex_delta": 0.0,
+            "triangle_delta": 0.0,
+            "visual_diff_delta": 0.00038146973,
+            "polyframe_preview": "tests/evaluation/outputs/previews/examples_complex_transform_scad/polyframe.png",
+            "openscad_preview": "tests/evaluation/outputs/previews/examples_complex_transform_scad/openscad.png",
+            "diff_preview": "tests/evaluation/outputs/previews/examples_complex_transform_scad/diff.png",
+            "polyframe_stl": "tests/evaluation/outputs/previews/examples_complex_transform_scad/polyframe.stl",
+            "openscad_stl": "tests/evaluation/outputs/previews/examples_complex_transform_scad/openscad.stl",
+            "error": null
+          }
+        },
+        {
+          "Comparison": {
+            "file": "examples/operations/union.scad",
+            "status": "Passed",
+            "duration": 2.194598,
+            "comparison_passed": true,
+            "vertex_delta": 0.6744186,
+            "triangle_delta": 0.6744186,
+            "visual_diff_delta": 15.83252,
+            "polyframe_preview": "tests/evaluation/outputs/previews/examples_operations_union_scad/polyframe.png",
+            "openscad_preview": "tests/evaluation/outputs/previews/examples_operations_union_scad/openscad.png",
+            "diff_preview": "tests/evaluation/outputs/previews/examples_operations_union_scad/diff.png",
+            "polyframe_stl": "tests/evaluation/outputs/previews/examples_operations_union_scad/polyframe.stl",
+            "openscad_stl": "tests/evaluation/outputs/previews/examples_operations_union_scad/openscad.stl",
+            "error": null
+          }
+        },
+        {
+          "Comparison": {
+            "file": "examples/operations/difference.scad",
+            "status": "Failed",
+            "duration": 2.597524958,
+            "comparison_passed": false,
+            "vertex_delta": 0.82045454,
+            "triangle_delta": 0.82045454,
+            "visual_diff_delta": 51.47527,
+            "polyframe_preview": "tests/evaluation/outputs/previews/examples_operations_difference_scad/polyframe.png",
+            "openscad_preview": "tests/evaluation/outputs/previews/examples_operations_difference_scad/openscad.png",
+            "diff_preview": "tests/evaluation/outputs/previews/examples_operations_difference_scad/diff.png",
+            "polyframe_stl": "tests/evaluation/outputs/previews/examples_operations_difference_scad/polyframe.stl",
+            "openscad_stl": "tests/evaluation/outputs/previews/examples_operations_difference_scad/openscad.stl",
+            "error": null
+          }
+        },
+        {
+          "Comparison": {
+            "file": "examples/primitives/cylinder.scad",
+            "status": "Passed",
+            "duration": 2.032749959,
+            "comparison_passed": true,
+            "vertex_delta": 0.03125,
+            "triangle_delta": 0.03125,
+            "visual_diff_delta": 0.00012715659,
+            "polyframe_preview": "tests/evaluation/outputs/previews/examples_primitives_cylinder_scad/polyframe.png",
+            "openscad_preview": "tests/evaluation/outputs/previews/examples_primitives_cylinder_scad/openscad.png",
+            "diff_preview": "tests/evaluation/outputs/previews/examples_primitives_cylinder_scad/diff.png",
+            "polyframe_stl": "tests/evaluation/outputs/previews/examples_primitives_cylinder_scad/polyframe.stl",
+            "openscad_stl": "tests/evaluation/outputs/previews/examples_primitives_cylinder_scad/openscad.stl",
+            "error": null
+          }
+        },
+        {
+          "Comparison": {
+            "file": "examples/primitives/sphere.scad",
+            "status": "Passed",
+            "duration": 1.747732667,
+            "comparison_passed": true,
+            "vertex_delta": 0.5019531,
+            "triangle_delta": 0.5019531,
+            "visual_diff_delta": 28.739548,
+            "polyframe_preview": "tests/evaluation/outputs/previews/examples_primitives_sphere_scad/polyframe.png",
+            "openscad_preview": "tests/evaluation/outputs/previews/examples_primitives_sphere_scad/openscad.png",
+            "diff_preview": "tests/evaluation/outputs/previews/examples_primitives_sphere_scad/diff.png",
+            "polyframe_stl": "tests/evaluation/outputs/previews/examples_primitives_sphere_scad/polyframe.stl",
+            "openscad_stl": "tests/evaluation/outputs/previews/examples_primitives_sphere_scad/openscad.stl",
+            "error": null
+          }
+        },
+        {
+          "Comparison": {
+            "file": "examples/primitives/cube.scad",
+            "status": "Passed",
+            "duration": 1.595222375,
+            "comparison_passed": true,
+            "vertex_delta": 0.0,
+            "triangle_delta": 0.0,
+            "visual_diff_delta": 0.0,
+            "polyframe_preview": "tests/evaluation/outputs/previews/examples_primitives_cube_scad/polyframe.png",
+            "openscad_preview": "tests/evaluation/outputs/previews/examples_primitives_cube_scad/openscad.png",
+            "diff_preview": "tests/evaluation/outputs/previews/examples_primitives_cube_scad/diff.png",
+            "polyframe_stl": "tests/evaluation/outputs/previews/examples_primitives_cube_scad/polyframe.stl",
+            "openscad_stl": "tests/evaluation/outputs/previews/examples_primitives_cube_scad/openscad.stl",
+            "error": null
+          }
+        },
+        {
+          "Comparison": {
+            "file": "tests/fixtures/validation/complex/parametric_box.scad",
+            "status": "Failed",
+            "duration": 2.267738667,
+            "comparison_passed": false,
+            "vertex_delta": 0.36666667,
+            "triangle_delta": 0.36666667,
+            "visual_diff_delta": 11.957678,
+            "polyframe_preview": "tests/evaluation/outputs/previews/tests_fixtures_validation_complex_parametric_box_scad/polyframe.png",
+            "openscad_preview": "tests/evaluation/outputs/previews/tests_fixtures_validation_complex_parametric_box_scad/openscad.png",
+            "diff_preview": "tests/evaluation/outputs/previews/tests_fixtures_validation_complex_parametric_box_scad/diff.png",
+            "polyframe_stl": "tests/evaluation/outputs/previews/tests_fixtures_validation_complex_parametric_box_scad/polyframe.stl",
+            "openscad_stl": "tests/evaluation/outputs/previews/tests_fixtures_validation_complex_parametric_box_scad/openscad.stl",
+            "error": null
+          }
+        },
+        {
+          "Comparison": {
+            "file": "tests/fixtures/validation/complex/gear_like.scad",
+            "status": "Failed",
+            "duration": 2.49315625,
+            "comparison_passed": false,
+            "vertex_delta": 0.5362319,
+            "triangle_delta": 0.5362319,
+            "visual_diff_delta": 44.137955,
+            "polyframe_preview": "tests/evaluation/outputs/previews/tests_fixtures_validation_complex_gear_like_scad/polyframe.png",
+            "openscad_preview": "tests/evaluation/outputs/previews/tests_fixtures_validation_complex_gear_like_scad/openscad.png",
+            "diff_preview": "tests/evaluation/outputs/previews/tests_fixtures_validation_complex_gear_like_scad/diff.png",
+            "polyframe_stl": "tests/evaluation/outputs/previews/tests_fixtures_validation_complex_gear_like_scad/polyframe.stl",
+            "openscad_stl": "tests/evaluation/outputs/previews/tests_fixtures_validation_complex_gear_like_scad/openscad.stl",
+            "error": null
+          }
+        },
+        {
+          "Comparison": {
+            "file": "tests/fixtures/validation/complex/assembly.scad",
+            "status": "Failed",
+            "duration": 139.469499083,
+            "comparison_passed": false,
+            "vertex_delta": 0.93785936,
+            "triangle_delta": 0.93785936,
+            "visual_diff_delta": 34.845863,
+            "polyframe_preview": "tests/evaluation/outputs/previews/tests_fixtures_validation_complex_assembly_scad/polyframe.png",
+            "openscad_preview": "tests/evaluation/outputs/previews/tests_fixtures_validation_complex_assembly_scad/openscad.png",
+            "diff_preview": "tests/evaluation/outputs/previews/tests_fixtures_validation_complex_assembly_scad/diff.png",
+            "polyframe_stl": "tests/evaluation/outputs/previews/tests_fixtures_validation_complex_assembly_scad/polyframe.stl",
+            "openscad_stl": "tests/evaluation/outputs/previews/tests_fixtures_validation_complex_assembly_scad/openscad.stl",
+            "error": null
+          }
+        },
+        {
+          "Comparison": {
+            "file": "tests/fixtures/validation/complex/mechanical_part.scad",
+            "status": "Failed",
+            "duration": 2.530084125,
+            "comparison_passed": false,
+            "vertex_delta": 0.435,
+            "triangle_delta": 0.435,
+            "visual_diff_delta": 43.449654,
+            "polyframe_preview": "tests/evaluation/outputs/previews/tests_fixtures_validation_complex_mechanical_part_scad/polyframe.png",
+            "openscad_preview": "tests/evaluation/outputs/previews/tests_fixtures_validation_complex_mechanical_part_scad/openscad.png",
+            "diff_preview": "tests/evaluation/outputs/previews/tests_fixtures_validation_complex_mechanical_part_scad/diff.png",
+            "polyframe_stl": "tests/evaluation/outputs/previews/tests_fixtures_validation_complex_mechanical_part_scad/polyframe.stl",
+            "openscad_stl": "tests/evaluation/outputs/previews/tests_fixtures_validation_complex_mechanical_part_scad/openscad.stl",
+            "error": null
+          }
+        },
+        {
+          "Comparison": {
+            "file": "tests/fixtures/validation/primitives/varied_sizes.scad",
+            "status": "Passed",
+            "duration": 45.652996709,
+            "comparison_passed": true,
+            "vertex_delta": 0.49949238,
+            "triangle_delta": 0.49949238,
+            "visual_diff_delta": 5.1539106,
+            "polyframe_preview": "tests/evaluation/outputs/previews/tests_fixtures_validation_primitives_varied_sizes_scad/polyframe.png",
+            "openscad_preview": "tests/evaluation/outputs/previews/tests_fixtures_validation_primitives_varied_sizes_scad/openscad.png",
+            "diff_preview": "tests/evaluation/outputs/previews/tests_fixtures_validation_primitives_varied_sizes_scad/diff.png",
+            "polyframe_stl": "tests/evaluation/outputs/previews/tests_fixtures_validation_primitives_varied_sizes_scad/polyframe.stl",
+            "openscad_stl": "tests/evaluation/outputs/previews/tests_fixtures_validation_primitives_varied_sizes_scad/openscad.stl",
+            "error": null
+          }
+        },
+        {
+          "Comparison": {
+            "file": "tests/fixtures/validation/primitives/cylinder_variants.scad",
+            "status": "Passed",
+            "duration": 6.279611167,
+            "comparison_passed": true,
+            "vertex_delta": 0.40022296,
+            "triangle_delta": 0.40022296,
+            "visual_diff_delta": 12.482071,
+            "polyframe_preview": "tests/evaluation/outputs/previews/tests_fixtures_validation_primitives_cylinder_variants_scad/polyframe.png",
+            "openscad_preview": "tests/evaluation/outputs/previews/tests_fixtures_validation_primitives_cylinder_variants_scad/openscad.png",
+            "diff_preview": "tests/evaluation/outputs/previews/tests_fixtures_validation_primitives_cylinder_variants_scad/diff.png",
+            "polyframe_stl": "tests/evaluation/outputs/previews/tests_fixtures_validation_primitives_cylinder_variants_scad/polyframe.stl",
+            "openscad_stl": "tests/evaluation/outputs/previews/tests_fixtures_validation_primitives_cylinder_variants_scad/openscad.stl",
+            "error": null
+          }
+        },
+        {
+          "Comparison": {
+            "file": "tests/fixtures/validation/primitives/centered_primitives.scad",
+            "status": "Passed",
+            "duration": 35.630369959,
+            "comparison_passed": true,
+            "vertex_delta": 0.4780439,
+            "triangle_delta": 0.4780439,
+            "visual_diff_delta": 10.708237,
+            "polyframe_preview": "tests/evaluation/outputs/previews/tests_fixtures_validation_primitives_centered_primitives_scad/polyframe.png",
+            "openscad_preview": "tests/evaluation/outputs/previews/tests_fixtures_validation_primitives_centered_primitives_scad/openscad.png",
+            "diff_preview": "tests/evaluation/outputs/previews/tests_fixtures_validation_primitives_centered_primitives_scad/diff.png",
+            "polyframe_stl": "tests/evaluation/outputs/previews/tests_fixtures_validation_primitives_centered_primitives_scad/polyframe.stl",
+            "openscad_stl": "tests/evaluation/outputs/previews/tests_fixtures_validation_primitives_centered_primitives_scad/openscad.stl",
+            "error": null
+          }
+        },
+        {
+          "Comparison": {
+            "file": "tests/fixtures/validation/transforms/combined_transforms.scad",
+            "status": "Passed",
+            "duration": 1.889793916,
+            "comparison_passed": true,
+            "vertex_delta": 0.1923077,
+            "triangle_delta": 0.1923077,
+            "visual_diff_delta": 2.3544312,
+            "polyframe_preview": "tests/evaluation/outputs/previews/tests_fixtures_validation_transforms_combined_transforms_scad/polyframe.png",
+            "openscad_preview": "tests/evaluation/outputs/previews/tests_fixtures_validation_transforms_combined_transforms_scad/openscad.png",
+            "diff_preview": "tests/evaluation/outputs/previews/tests_fixtures_validation_transforms_combined_transforms_scad/diff.png",
+            "polyframe_stl": "tests/evaluation/outputs/previews/tests_fixtures_validation_transforms_combined_transforms_scad/polyframe.stl",
+            "openscad_stl": "tests/evaluation/outputs/previews/tests_fixtures_validation_transforms_combined_transforms_scad/openscad.stl",
+            "error": null
+          }
+        },
+        {
+          "Comparison": {
+            "file": "tests/fixtures/validation/transforms/mirror_test.scad",
+            "status": "Failed",
+            "duration": 1.553298167,
+            "comparison_passed": false,
+            "vertex_delta": 0.09615385,
+            "triangle_delta": 0.09615385,
+            "visual_diff_delta": 1.1122386,
+            "polyframe_preview": "tests/evaluation/outputs/previews/tests_fixtures_validation_transforms_mirror_test_scad/polyframe.png",
+            "openscad_preview": "tests/evaluation/outputs/previews/tests_fixtures_validation_transforms_mirror_test_scad/openscad.png",
+            "diff_preview": "tests/evaluation/outputs/previews/tests_fixtures_validation_transforms_mirror_test_scad/diff.png",
+            "polyframe_stl": "tests/evaluation/outputs/previews/tests_fixtures_validation_transforms_mirror_test_scad/polyframe.stl",
+            "openscad_stl": "tests/evaluation/outputs/previews/tests_fixtures_validation_transforms_mirror_test_scad/openscad.stl",
+            "error": null
+          }
+        },
+        {
+          "Comparison": {
+            "file": "tests/fixtures/validation/boolean/union_comprehensive.scad",
+            "status": "Error",
+            "duration": 23.472005041,
+            "comparison_passed": false,
+            "vertex_delta": 0.0,
+            "triangle_delta": 0.0,
+            "error": "Failed to run Polyframe"
+          }
+        },
+        {
+          "Comparison": {
+            "file": "tests/fixtures/validation/boolean/nested_booleans.scad",
+            "status": "Passed",
+            "duration": 85.298583834,
+            "comparison_passed": true,
+            "vertex_delta": 0.5979602,
+            "triangle_delta": 0.5979602,
+            "visual_diff_delta": 9.225845,
+            "polyframe_preview": "tests/evaluation/outputs/previews/tests_fixtures_validation_boolean_nested_booleans_scad/polyframe.png",
+            "openscad_preview": "tests/evaluation/outputs/previews/tests_fixtures_validation_boolean_nested_booleans_scad/openscad.png",
+            "diff_preview": "tests/evaluation/outputs/previews/tests_fixtures_validation_boolean_nested_booleans_scad/diff.png",
+            "polyframe_stl": "tests/evaluation/outputs/previews/tests_fixtures_validation_boolean_nested_booleans_scad/polyframe.stl",
+            "openscad_stl": "tests/evaluation/outputs/previews/tests_fixtures_validation_boolean_nested_booleans_scad/openscad.stl",
+            "error": null
+          }
+        },
+        {
+          "Comparison": {
+            "file": "tests/fixtures/validation/boolean/difference_tests.scad",
+            "status": "Failed",
+            "duration": 37.088813292,
+            "comparison_passed": false,
+            "vertex_delta": 0.46172705,
+            "triangle_delta": 0.46172705,
+            "visual_diff_delta": 24.900055,
+            "polyframe_preview": "tests/evaluation/outputs/previews/tests_fixtures_validation_boolean_difference_tests_scad/polyframe.png",
+            "openscad_preview": "tests/evaluation/outputs/previews/tests_fixtures_validation_boolean_difference_tests_scad/openscad.png",
+            "diff_preview": "tests/evaluation/outputs/previews/tests_fixtures_validation_boolean_difference_tests_scad/diff.png",
+            "polyframe_stl": "tests/evaluation/outputs/previews/tests_fixtures_validation_boolean_difference_tests_scad/polyframe.stl",
+            "openscad_stl": "tests/evaluation/outputs/previews/tests_fixtures_validation_boolean_difference_tests_scad/openscad.stl",
+            "error": null
+          }
+        },
+        {
+          "Comparison": {
+            "file": "tests/fixtures/validation/boolean/intersection_tests.scad",
+            "status": "Failed",
+            "duration": 10.015653208,
+            "comparison_passed": false,
+            "vertex_delta": 0.57770103,
+            "triangle_delta": 0.57770103,
+            "visual_diff_delta": 22.709019,
+            "polyframe_preview": "tests/evaluation/outputs/previews/tests_fixtures_validation_boolean_intersection_tests_scad/polyframe.png",
+            "openscad_preview": "tests/evaluation/outputs/previews/tests_fixtures_validation_boolean_intersection_tests_scad/openscad.png",
+            "diff_preview": "tests/evaluation/outputs/previews/tests_fixtures_validation_boolean_intersection_tests_scad/diff.png",
+            "polyframe_stl": "tests/evaluation/outputs/previews/tests_fixtures_validation_boolean_intersection_tests_scad/polyframe.stl",
+            "openscad_stl": "tests/evaluation/outputs/previews/tests_fixtures_validation_boolean_intersection_tests_scad/openscad.stl",
+            "error": null
+          }
+        },
+        {
+          "Comparison": {
+            "file": "tests/fixtures/validation/boolean/union_tests.scad",
+            "status": "Passed",
+            "duration": 14.964948917,
+            "comparison_passed": true,
+            "vertex_delta": 0.624042,
+            "triangle_delta": 0.624042,
+            "visual_diff_delta": 11.513519,
+            "polyframe_preview": "tests/evaluation/outputs/previews/tests_fixtures_validation_boolean_union_tests_scad/polyframe.png",
+            "openscad_preview": "tests/evaluation/outputs/previews/tests_fixtures_validation_boolean_union_tests_scad/openscad.png",
+            "diff_preview": "tests/evaluation/outputs/previews/tests_fixtures_validation_boolean_union_tests_scad/diff.png",
+            "polyframe_stl": "tests/evaluation/outputs/previews/tests_fixtures_validation_boolean_union_tests_scad/polyframe.stl",
+            "openscad_stl": "tests/evaluation/outputs/previews/tests_fixtures_validation_boolean_union_tests_scad/openscad.stl",
+            "error": null
+          }
+        }
+      ]
+    }
+  ],
+  "compatibility_score": 48.148148
+}

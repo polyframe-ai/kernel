@@ -104,20 +104,20 @@ impl Runner {
             let v1_pos = &vertices[face.vertices[1]];
             let v2_pos = &vertices[face.vertices[2]];
 
-            let normal = Vector3::new(face.normal[0], face.normal[1], face.normal[2]);
+            let normal = Vector3::new(face.normal[0] as f64, face.normal[1] as f64, face.normal[2] as f64);
 
             let v0 = mesh.add_vertex(Vertex::new(
-                Point3::new(v0_pos[0], v0_pos[1], v0_pos[2]),
+                Point3::new(v0_pos[0] as f64, v0_pos[1] as f64, v0_pos[2] as f64),
                 normal,
             ));
 
             let v1 = mesh.add_vertex(Vertex::new(
-                Point3::new(v1_pos[0], v1_pos[1], v1_pos[2]),
+                Point3::new(v1_pos[0] as f64, v1_pos[1] as f64, v1_pos[2] as f64),
                 normal,
             ));
 
             let v2 = mesh.add_vertex(Vertex::new(
-                Point3::new(v2_pos[0], v2_pos[1], v2_pos[2]),
+                Point3::new(v2_pos[0] as f64, v2_pos[1] as f64, v2_pos[2] as f64),
                 normal,
             ));
 

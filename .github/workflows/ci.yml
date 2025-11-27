@@ -121,7 +121,7 @@ jobs:
 
       - name: Run evaluation harness
         run: |
-          ./target/release/polyframe eval examples/ --out evaluation/results
+          ./target/release/polyframe eval examples/ --out tests/evaluation/results
 
       - name: Upload evaluation results
         if: always()
@@ -129,7 +129,7 @@ jobs:
         with:
           name: integration-test-results
           path: |
-            evaluation/results/
+            tests/evaluation/results/
           retention-days: 7
 
   benchmark:

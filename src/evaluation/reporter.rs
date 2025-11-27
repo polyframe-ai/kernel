@@ -4,7 +4,7 @@
 //! Report generation (JSON and Markdown)
 
 use super::runner::EvaluationResult;
-use anyhow::Result;
+use anyhow::{Context, Result};
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use std::fs;
@@ -117,20 +117,36 @@ impl Reporter {
 
         // Summary
         md.push_str("## Summary\n\n");
-        md.push_str(&format!("- **Total Models**: {}\n", report.total_models));
+        md.push_str(&format!("- **Total Tests**: {}\n", report.total_models));
+        
+        let minor_diffs = report.results.iter()
+            .filter(|r| !r.comparison.passed && r.comparison.vertices_diff < 0.1)
+            .count();
+        
         md.push_str(&format!(
             "- **Passed**: {} ({:.1}%)\n",
             report.passed,
             report.pass_rate()
         ));
-        md.push_str(&format!("- **Failed**: {}\n", report.failed));
-        md.push_str(&format!("- **Errors**: {}\n", report.errors));
         md.push_str(&format!(
-            "- **Success Rate**: {:.1}% ({} of {} completed)\n",
-            report.success_rate(),
-            report.total_models - report.errors,
-            report.total_models
+            "- **Minor Differences**: {} ({:.1}%)\n",
+            minor_diffs,
+            if report.total_models > 0 {
+                (minor_diffs as f32 / report.total_models as f32) * 100.0
+            } else {
+                0.0
+            }
         ));
+        md.push_str(&format!(
+            "- **Failures**: {} ({:.1}%)\n",
+            report.failed,
+            if report.total_models > 0 {
+                (report.failed as f32 / report.total_models as f32) * 100.0
+            } else {
+                0.0
+            }
+        ));
+        md.push_str(&format!("- **Errors**: {}\n", report.errors));
         md.push_str(&format!(
             "- **Average Speedup**: {:.2}×\n\n",
             report.avg_speedup
@@ -179,9 +195,51 @@ impl Reporter {
             ));
         }
 
+        // Delta statistics
+        if !report.results.is_empty() {
+            md.push_str("\n## Deltas\n\n");
+            md.push_str("| Metric | Avg Diff | Max Diff |\n");
+            md.push_str("|--------|----------|----------|\n");
+            
+            let vertex_diffs: Vec<f32> = report.results.iter()
+                .map(|r| r.comparison.vertices_diff * 100.0)
+                .collect();
+            let triangle_diffs: Vec<f32> = report.results.iter()
+                .map(|r| r.comparison.triangles_diff * 100.0)
+                .collect();
+            let bbox_diffs: Vec<f32> = report.results.iter()
+                .map(|r| r.comparison.bbox_diff)
+                .collect();
+            
+            let avg_vertex = vertex_diffs.iter().sum::<f32>() / vertex_diffs.len() as f32;
+            let max_vertex = vertex_diffs.iter().fold(0.0f32, |a, &b| a.max(b));
+            
+            let avg_triangle = triangle_diffs.iter().sum::<f32>() / triangle_diffs.len() as f32;
+            let max_triangle = triangle_diffs.iter().fold(0.0f32, |a, &b| a.max(b));
+            
+            let avg_bbox = bbox_diffs.iter().sum::<f32>() / bbox_diffs.len() as f32;
+            let max_bbox = bbox_diffs.iter().fold(0.0f32, |a, &b| a.max(b));
+            
+            md.push_str(&format!(
+                "| Vertex Count | {:.2}% | {:.2}% |\n",
+                avg_vertex, max_vertex
+            ));
+            md.push_str(&format!(
+                "| Triangle Count | {:.2}% | {:.2}% |\n",
+                avg_triangle, max_triangle
+            ));
+            md.push_str(&format!(
+                "| Bounding Box | {:.5} | {:.5} |\n",
+                avg_bbox, max_bbox
+            ));
+        }
+
         // Failed models section
         if report.failed > 0 {
-            md.push_str("\n## Failed Models\n\n");
+            md.push_str("\n## Failures\n\n");
+            md.push_str("| File | Error | Notes |\n");
+            md.push_str("|------|-------|-------|\n");
+            
             for result in &report.results {
                 if !result.comparison.passed {
                     let model_name = std::path::Path::new(&result.model)
@@ -190,20 +248,25 @@ impl Reporter {
                         .to_str()
                         .unwrap();
 
-                    md.push_str(&format!("- ❌ **{}**\n", model_name));
+                    let error_note = if result.comparison.vertices_diff > 0.35 {
+                        format!("Vertex mismatch {:.1}%", result.comparison.vertices_diff * 100.0)
+                    } else if result.comparison.bbox_diff > 0.001 {
+                        "Bbox diverged".to_string()
+                    } else {
+                        "Minor differences".to_string()
+                    };
+                    
                     md.push_str(&format!(
-                        "  - Vertices: {} (Polyframe) vs {} (OpenSCAD)\n",
-                        result.comparison.vertex_count_poly,
-                        result.comparison.vertex_count_openscad
-                    ));
-                    md.push_str(&format!(
-                        "  - ΔVertices: {:.2}% (dynamic threshold based on operation type)\n",
-                        result.comparison.vertices_diff * 100.0
-                    ));
-                    md.push_str(&format!(
-                        "  - ΔBBox: {:.5} (threshold: {:.5})\n",
-                        result.comparison.bbox_diff,
-                        super::comparator::BBOX_TOL
+                        "| {} | {} | {} |\n",
+                        model_name,
+                        if result.comparison.vertex_count_poly == 0 {
+                            "Polyframe crash"
+                        } else if result.comparison.vertex_count_openscad == 0 {
+                            "OpenSCAD crash"
+                        } else {
+                            "Geometry mismatch"
+                        },
+                        error_note
                     ));
                 }
             }
@@ -219,10 +282,24 @@ impl Reporter {
             }
         }
 
+        // Visual Diffs section (if available)
+        md.push_str("\n## Visual Diffs\n\n");
+        md.push_str("Visual diff images are available in `tests/evaluation/outputs/diffs/` for failed tests.\n\n");
+
         // Footer
         md.push_str(&format!("\n---\n\n*Generated on {}*\n", report.timestamp));
 
         fs::write(path, md)?;
+        Ok(())
+    }
+
+    /// Generate report from existing JSON report file
+    pub fn generate_report(json_path: &Path, output_path: &Path) -> Result<()> {
+        let json_content = fs::read_to_string(json_path)
+            .context(format!("Failed to read JSON report: {}", json_path.display()))?;
+        let report: EvaluationReport = serde_json::from_str(&json_content)
+            .context("Failed to parse JSON report")?;
+        Self::write_markdown(&report, output_path)?;
         Ok(())
     }
 }

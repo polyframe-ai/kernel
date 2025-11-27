@@ -7,8 +7,10 @@ use super::{comparator, Comparison, Metrics};
 use anyhow::{bail, Context, Result};
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
-use std::process::Command;
-use std::time::Instant;
+use std::process::{Command, Stdio};
+use std::sync::mpsc;
+use std::thread;
+use std::time::{Duration, Instant};
 use tempfile::TempDir;
 
 /// Result of running a renderer
@@ -29,62 +31,133 @@ pub struct EvaluationResult {
     pub metrics: Metrics,
 }
 
-/// Run OpenSCAD on a .scad file
+/// Run OpenSCAD on a .scad file with timeout (15 seconds default)
 pub fn run_openscad(file: &Path) -> Result<RunResult> {
+    run_openscad_with_timeout(file, Duration::from_secs(15))
+}
+
+/// Run OpenSCAD on a .scad file with custom timeout
+pub fn run_openscad_with_timeout(file: &Path, timeout: Duration) -> Result<RunResult> {
     // Check if OpenSCAD is available
     if Command::new("openscad").arg("--version").output().is_err() {
         bail!("OpenSCAD not found in PATH");
     }
 
-    let temp_dir = TempDir::new()?;
-    let output_path = temp_dir.path().join("output.stl");
+    // Create output directory if it doesn't exist
+    let output_dir = PathBuf::from("tests/evaluation/outputs/openscad");
+    std::fs::create_dir_all(&output_dir)?;
+
+    let output_path = output_dir.join(format!(
+        "{}.stl",
+        file.file_stem().unwrap().to_str().unwrap()
+    ));
 
     let start = Instant::now();
 
-    let status = Command::new("openscad")
+    // Capture stderr for error messages
+    let mut child = Command::new("openscad")
         .arg("-o")
         .arg(&output_path)
         .arg(file)
         .arg("--quiet")
-        .status()
+        .stderr(Stdio::piped())
+        .spawn()
         .context("Failed to execute OpenSCAD")?;
+
+    let stderr = child.stderr.take();
+
+    // Use channel for timeout
+    let (tx, rx) = mpsc::channel();
+    let mut child_handle = child;
+    thread::spawn(move || {
+        let status = child_handle.wait();
+        let _ = tx.send(status);
+    });
+
+    let status = match rx.recv_timeout(timeout) {
+        Ok(Ok(status)) => status,
+        Ok(Err(e)) => bail!("OpenSCAD process error: {}", e),
+        Err(_) => {
+            // Timeout occurred - process may still be running
+            // Note: We can't easily kill it here, but the timeout is detected
+            bail!("OpenSCAD timed out after {:?}", timeout);
+        }
+    };
+
+    // Read stderr if available
+    let mut stderr_msg = String::new();
+    if let Some(mut stderr) = stderr {
+        use std::io::Read;
+        let _ = stderr.read_to_string(&mut stderr_msg);
+    }
 
     let time_ms = start.elapsed().as_millis();
 
     if !status.success() {
-        bail!("OpenSCAD exited with status: {}", status);
+        bail!(
+            "OpenSCAD exited with status {}: {}",
+            status,
+            if stderr_msg.is_empty() {
+                "Unknown error".to_string()
+            } else {
+                stderr_msg
+            }
+        );
     }
-
-    // Move to persistent location for comparison
-    let persistent_path = PathBuf::from(format!(
-        "target/eval_openscad_{}.stl",
-        file.file_stem().unwrap().to_str().unwrap()
-    ));
-    std::fs::copy(&output_path, &persistent_path)?;
 
     Ok(RunResult {
         file: file.display().to_string(),
         time_ms,
-        output_path: persistent_path,
+        output_path,
     })
 }
 
-/// Run Polyframe on a .scad file
+/// Run Polyframe on a .scad file with timeout (15 seconds default)
 pub fn run_polyframe(file: &Path) -> Result<RunResult> {
-    let output_path = PathBuf::from(format!(
-        "target/eval_polyframe_{}.stl",
+    run_polyframe_with_timeout(file, Duration::from_secs(15))
+}
+
+/// Run Polyframe on a .scad file with custom timeout
+pub fn run_polyframe_with_timeout(file: &Path, timeout: Duration) -> Result<RunResult> {
+    // Create output directory if it doesn't exist
+    let output_dir = PathBuf::from("tests/evaluation/outputs/polyframe");
+    std::fs::create_dir_all(&output_dir)?;
+
+    let output_path = output_dir.join(format!(
+        "{}.stl",
         file.file_stem().unwrap().to_str().unwrap()
     ));
 
     let start = Instant::now();
 
-    // Use the library directly
-    let mesh =
-        crate::render_file(file.to_str().unwrap()).context("Failed to render with Polyframe")?;
+    // Run in a separate thread with timeout
+    let file_path = file.to_path_buf();
+    let output_path_clone = output_path.clone();
+    let (tx, rx) = mpsc::channel();
 
-    crate::io::export_stl(&mesh, output_path.to_str().unwrap()).context("Failed to export STL")?;
+    thread::spawn(move || {
+        let result = (|| -> Result<()> {
+            // Use the library directly
+            let mesh = crate::render_file(file_path.to_str().unwrap())
+                .context("Failed to render with Polyframe")?;
+
+            crate::io::export_stl(&mesh, output_path_clone.to_str().unwrap())
+                .context("Failed to export STL")?;
+
+            Ok(())
+        })();
+        let _ = tx.send(result);
+    });
+
+    let result = match rx.recv_timeout(timeout) {
+        Ok(Ok(())) => Ok(()),
+        Ok(Err(e)) => Err(e),
+        Err(_) => bail!("Polyframe render timed out after {:?}", timeout),
+    };
 
     let time_ms = start.elapsed().as_millis();
+
+    result?;
 
     Ok(RunResult {
         file: file.display().to_string(),
@@ -197,8 +270,11 @@ pub fn run_model_task(task: &super::dataset::ModelTask) -> Result<EvaluationResu
 
 /// Run Polyframe from source string
 fn run_polyframe_from_source(name: &str, source: &str) -> Result<RunResult> {
-    let output_path = PathBuf::from(format!(
-        "target/eval_polyframe_{}.stl",
+    let output_dir = PathBuf::from("tests/evaluation/outputs/polyframe");
+    std::fs::create_dir_all(&output_dir)?;
+    
+    let output_path = output_dir.join(format!(
+        "{}.stl",
         name.replace(['/', '\\', ' '], "_")
     ));
 
@@ -249,8 +325,11 @@ fn run_openscad_from_source(name: &str, source: &str) -> Result<RunResult> {
     }
 
     // Move to persistent location for comparison
-    let persistent_path = PathBuf::from(format!(
-        "target/eval_openscad_{}.stl",
+    let output_dir = PathBuf::from("tests/evaluation/outputs/openscad");
+    std::fs::create_dir_all(&output_dir)?;
+    
+    let persistent_path = output_dir.join(format!(
+        "{}.stl",
         name.replace(['/', '\\', ' '], "_")
     ));
     std::fs::copy(&output_path, &persistent_path)?;

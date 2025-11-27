@@ -10,19 +10,19 @@ use serde::{Deserialize, Serialize};
 /// Axis-aligned bounding box
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct BoundingBox {
-    pub min: Point3<f32>,
-    pub max: Point3<f32>,
+    pub min: Point3<f64>,
+    pub max: Point3<f64>,
 }
 
 impl BoundingBox {
-    pub fn new(min: Point3<f32>, max: Point3<f32>) -> Self {
+    pub fn new(min: Point3<f64>, max: Point3<f64>) -> Self {
         Self { min, max }
     }
 
     pub fn empty() -> Self {
         Self {
-            min: Point3::new(f32::INFINITY, f32::INFINITY, f32::INFINITY),
-            max: Point3::new(f32::NEG_INFINITY, f32::NEG_INFINITY, f32::NEG_INFINITY),
+            min: Point3::new(f64::INFINITY, f64::INFINITY, f64::INFINITY),
+            max: Point3::new(f64::NEG_INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY),
         }
     }
 
@@ -38,7 +38,7 @@ impl BoundingBox {
         bbox
     }
 
-    pub fn expand_to_include(&mut self, point: &Point3<f32>) {
+    pub fn expand_to_include(&mut self, point: &Point3<f64>) {
         self.min.x = self.min.x.min(point.x);
         self.min.y = self.min.y.min(point.y);
         self.min.z = self.min.z.min(point.z);
@@ -48,7 +48,7 @@ impl BoundingBox {
         self.max.z = self.max.z.max(point.z);
     }
 
-    pub fn center(&self) -> Point3<f32> {
+    pub fn center(&self) -> Point3<f64> {
         Point3::new(
             (self.min.x + self.max.x) / 2.0,
             (self.min.y + self.max.y) / 2.0,
@@ -56,7 +56,7 @@ impl BoundingBox {
         )
     }
 
-    pub fn size(&self) -> nalgebra::Vector3<f32> {
+    pub fn size(&self) -> nalgebra::Vector3<f64> {
         nalgebra::Vector3::new(
             self.max.x - self.min.x,
             self.max.y - self.min.y,
@@ -64,13 +64,13 @@ impl BoundingBox {
         )
     }
 
-    pub fn volume(&self) -> f32 {
+    pub fn volume(&self) -> f64 {
         let size = self.size();
         size.x * size.y * size.z
     }
 
     /// Check if two bounding boxes are approximately equal within tolerance
-    pub fn approx_eq(&self, other: &BoundingBox, tolerance: f32) -> bool {
+    pub fn approx_eq(&self, other: &BoundingBox, tolerance: f64) -> bool {
         (self.min.x - other.min.x).abs() < tolerance
             && (self.min.y - other.min.y).abs() < tolerance
             && (self.min.z - other.min.z).abs() < tolerance

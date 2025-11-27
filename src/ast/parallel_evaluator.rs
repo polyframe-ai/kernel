@@ -18,7 +18,7 @@ impl ParallelEvaluator {
         Self::evaluate_node(&node.kind, &Matrix4::identity())
     }
 
-    fn evaluate_node(kind: &NodeKind, transform: &Matrix4<f32>) -> Result<Mesh> {
+    fn evaluate_node(kind: &NodeKind, transform: &Matrix4<f64>) -> Result<Mesh> {
         match kind {
             NodeKind::Cube { size, center } => {
                 let mut mesh = Primitive::cube(*size, *center).to_mesh();
@@ -72,7 +72,7 @@ impl ParallelEvaluator {
 
     fn evaluate_parallel_boolean(
         children: &[Node],
-        transform: &Matrix4<f32>,
+        transform: &Matrix4<f64>,
         op: BooleanOp,
     ) -> Result<Mesh> {
         if children.is_empty() {

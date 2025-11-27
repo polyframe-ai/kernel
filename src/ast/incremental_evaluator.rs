@@ -78,7 +78,7 @@ impl IncrementalEvaluator {
     fn evaluate_node(
         &self,
         kind: &NodeKind,
-        transform: &Matrix4<f32>,
+        transform: &Matrix4<f64>,
         node_id: &Option<String>,
     ) -> Result<Mesh> {
         // Check cache if node has an ID
@@ -99,7 +99,7 @@ impl IncrementalEvaluator {
         Ok(mesh)
     }
 
-    fn evaluate_node_uncached(&self, kind: &NodeKind, transform: &Matrix4<f32>) -> Result<Mesh> {
+    fn evaluate_node_uncached(&self, kind: &NodeKind, transform: &Matrix4<f64>) -> Result<Mesh> {
         match kind {
             NodeKind::Cube { size, center } => {
                 let mut mesh = Primitive::cube(*size, *center).to_mesh();
@@ -154,7 +154,7 @@ impl IncrementalEvaluator {
     fn evaluate_boolean(
         &self,
         children: &[Node],
-        transform: &Matrix4<f32>,
+        transform: &Matrix4<f64>,
         op: BooleanOp,
     ) -> Result<Mesh> {
         if children.is_empty() {

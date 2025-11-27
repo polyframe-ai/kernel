@@ -65,7 +65,7 @@ impl ParallelBooleanExecutor {
     }
 
     /// Transform multiple meshes in parallel
-    pub fn transform_parallel(meshes: Vec<Mesh>, transform: nalgebra::Matrix4<f32>) -> Vec<Mesh> {
+    pub fn transform_parallel(meshes: Vec<Mesh>, transform: nalgebra::Matrix4<f64>) -> Vec<Mesh> {
         meshes
             .into_par_iter()
             .map(|mut mesh| {
@@ -79,7 +79,7 @@ impl ParallelBooleanExecutor {
 /// Thread-safe mesh operations
 pub trait ThreadSafeMeshOps {
     fn clone_mesh(&self) -> Mesh;
-    fn transform_safe(&self, matrix: &nalgebra::Matrix4<f32>);
+    fn transform_safe(&self, matrix: &nalgebra::Matrix4<f64>);
     fn merge_safe(&self, other: &Mesh);
 }
 
@@ -88,7 +88,7 @@ impl ThreadSafeMeshOps for ThreadSafeMesh {
         self.read().unwrap().clone()
     }
 
-    fn transform_safe(&self, matrix: &nalgebra::Matrix4<f32>) {
+    fn transform_safe(&self, matrix: &nalgebra::Matrix4<f64>) {
         self.write().unwrap().transform(matrix);
     }
 

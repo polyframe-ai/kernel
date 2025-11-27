@@ -18,6 +18,14 @@ crate-type = ["cdylib", "rlib"]
 name = "polyframe"
 path = "src/bin/cli.rs"
 
+[[bin]]
+name = "polyframe-eval"
+path = "src/bin/eval.rs"
+
+[[bin]]
+name = "polyframe-validate"
+path = "src/bin/validate.rs"
+
 [dependencies]
 # Parser
 pest = "2.7"
@@ -58,6 +66,11 @@ tempfile = "3.10"
 walkdir = "2.5"
 sha2 = "0.10"
 chrono = "0.4"
+toml = "0.8"
+
+# Evaluation harness
+image = "0.25"
+rand = "0.8"
 
 [dev-dependencies]
 criterion = { version = "0.5", features = ["html_reports"] }

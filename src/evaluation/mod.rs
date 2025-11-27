@@ -5,17 +5,24 @@
 
 pub mod comparator;
 pub mod dataset;
+pub mod fuzzer;
 pub mod metrics;
+pub mod regression;
 pub mod reporter;
 pub mod runner;
+pub mod visual_diff;
 
-pub use comparator::{compare_stl_files, Comparison};
+pub use comparator::{compare_mesh, compare_stl_files, Comparison, DeltaStats, DiffResult};
 pub use dataset::{
-    detect_source, discover_models, load_dataset, DatasetSource, Exercise, ModelTask,
+    detect_source, discover_models, load_corpus, load_dataset, CorpusEntry, DatasetSource,
+    Exercise, ModelTask,
 };
+pub use fuzzer::{Fuzzer, FuzzerConfig, test_parse_parity};
 pub use metrics::Metrics;
+pub use regression::{RegressionMetadata, RegressionSuite};
 pub use reporter::{EvaluationReport, Reporter};
 pub use runner::{run_and_compare, run_model_task, run_openscad, run_polyframe, RunResult};
+pub use visual_diff::{compare_images, generate_diff_image, render_stl_to_png};
 
 use anyhow::Result;
 use std::path::PathBuf;
@@ -40,7 +47,7 @@ pub fn evaluate(
     }
 
     // Write reports
-    let output_dir = output_dir.unwrap_or_else(|| PathBuf::from("evaluation/results"));
+    let output_dir = output_dir.unwrap_or_else(|| PathBuf::from("tests/evaluation/results"));
     std::fs::create_dir_all(&output_dir)?;
 
     Reporter::write_json(&report, &output_dir.join("latest.json"))?;

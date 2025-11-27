@@ -1,0 +1,41 @@
+{
+  "timestamp": "2025-11-27 06:09:27 UTC",
+  "total_suites": 1,
+  "total_tests": 1,
+  "total_passed": 1,
+  "total_failed": 0,
+  "total_skipped": 0,
+  "total_errors": 0,
+  "total_duration": 44.002133125,
+  "suite_results": [
+    {
+      "suite": "Comparison",
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "errors": 0,
+      "duration": 44.002133125,
+      "results": [
+        {
+          "Comparison": {
+            "file": "tests/fixtures/validation/boolean/union_tests.scad",
+            "status": "Passed",
+            "duration": 44.001221209,
+            "comparison_passed": true,
+            "vertex_delta": 0.6871433,
+            "triangle_delta": 0.6871433,
+            "visual_diff_delta": 7.55895,
+            "polyframe_preview": "tests/evaluation/outputs/previews/tests_fixtures_validation_boolean_union_tests_scad/polyframe.png",
+            "openscad_preview": "tests/evaluation/outputs/previews/tests_fixtures_validation_boolean_union_tests_scad/openscad.png",
+            "diff_preview": "tests/evaluation/outputs/previews/tests_fixtures_validation_boolean_union_tests_scad/diff.png",
+            "polyframe_stl": "tests/evaluation/outputs/previews/tests_fixtures_validation_boolean_union_tests_scad/polyframe.stl",
+            "openscad_stl": "tests/evaluation/outputs/previews/tests_fixtures_validation_boolean_union_tests_scad/openscad.stl",
+            "error": null
+          }
+        }
+      ]
+    }
+  ],
+  "compatibility_score": 100.0
+}

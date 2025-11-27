@@ -55,7 +55,7 @@ pub fn compare_meshes(mesh_a: &Mesh, mesh_b: &Mesh, tolerance: f32) -> MeshCompa
     // Compare bounding boxes
     let bbox_a = mesh_a.bounding_box();
     let bbox_b = mesh_b.bounding_box();
-    comparison.bbox_match = bbox_a.approx_eq(&bbox_b, tolerance);
+    comparison.bbox_match = bbox_a.approx_eq(&bbox_b, tolerance as f64);
     comparison.bbox_tolerance = tolerance;
 
     // Overall pass if all checks pass

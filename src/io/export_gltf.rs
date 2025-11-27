@@ -197,12 +197,12 @@ fn calculate_bounds(mesh: &Mesh) -> ([f32; 3], [f32; 3]) {
     let mut max = [f32::MIN, f32::MIN, f32::MIN];
 
     for vertex in &mesh.vertices {
-        min[0] = min[0].min(vertex.position.x);
-        min[1] = min[1].min(vertex.position.y);
-        min[2] = min[2].min(vertex.position.z);
-        max[0] = max[0].max(vertex.position.x);
-        max[1] = max[1].max(vertex.position.y);
-        max[2] = max[2].max(vertex.position.z);
+        min[0] = min[0].min(vertex.position.x as f32);
+        min[1] = min[1].min(vertex.position.y as f32);
+        min[2] = min[2].min(vertex.position.z as f32);
+        max[0] = max[0].max(vertex.position.x as f32);
+        max[1] = max[1].max(vertex.position.y as f32);
+        max[2] = max[2].max(vertex.position.z as f32);
     }
 
     (min, max)

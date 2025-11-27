@@ -8,7 +8,7 @@ pub mod diff;
 pub mod reporter;
 pub mod runner;
 
-pub use compare::{batch_compare, compare_with_openscad};
+pub use compare::{batch_compare, compare_with_openscad, PreviewConfig};
 pub use diff::{ComparisonResult, MeshDiff};
 pub use reporter::Reporter;
 pub use runner::Runner;

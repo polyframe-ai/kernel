@@ -1,0 +1,39 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2025 Polyframe Inc.
+#
+# Validation configuration file
+# Copy this to validation.toml and customize as needed
+
+# Test suites to run (unit, integration, evaluation, comparison, fuzz, regression)
+suites = ["unit", "integration", "evaluation", "comparison"]
+
+# Maximum parallel workers (None = auto-detect)
+# parallelism = 4
+
+# Timeout for individual tests (seconds)
+# test_timeout = 30
+
+# Timeout for entire suite (seconds)
+# suite_timeout = 300
+
+# Output directory for reports
+output_dir = "tests/evaluation/outputs"
+
+# OpenSCAD executable path (None = auto-detect)
+# openscad_path = "/usr/bin/openscad"
+
+# Filter patterns for test names
+# filters = ["primitives", "cube"]
+
+# Test file patterns
+# file_patterns = ["examples/", "tests/fixtures/"]
+
+# Whether to generate visual diffs (PNG renders + diff overlays under output_dir/previews)
+generate_visual_diffs = false
+
+# Whether to stop on first failure
+fail_fast = false
+
+# Verbose output
+verbose = false
+

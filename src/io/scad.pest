@@ -39,8 +39,12 @@ statement = {
     primitive_stmt |
     transform_stmt |
     boolean_stmt |
-    module_call
+    module_call |
+    variable_assignment
 }
+
+// Variable assignment
+variable_assignment = { ident ~ "=" ~ expr ~ ";" }
 
 // Primitives
 primitive_stmt = {

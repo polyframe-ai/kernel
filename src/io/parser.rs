@@ -79,7 +79,7 @@ fn parse_primitive(pair: pest::iterators::Pair<Rule>) -> Result<Option<Node>> {
             let r = params
                 .get_number("r")
                 .or_else(|| params.get_positional_number(0))
-                .unwrap_or(1.0);
+                .unwrap_or(1.0) as f64;
             let fn_ = params.get_number("$fn").map(|v| v as u32).unwrap_or(32);
             Ok(Some(Node::new(NodeKind::Sphere { r, fn_ })))
         }
@@ -88,13 +88,55 @@ fn parse_primitive(pair: pest::iterators::Pair<Rule>) -> Result<Option<Node>> {
             let h = params
                 .get_number("h")
                 .or_else(|| params.get_positional_number(0))
-                .unwrap_or(1.0);
+                .unwrap_or(1.0) as f64;
+            
+            // Handle radius (r) or diameter (d)
             let r = params
                 .get_number("r")
+                .or_else(|| {
+                    // If d is provided, convert to radius
+                    params.get_number("d").map(|d| d / 2.0)
+                })
                 .or_else(|| params.get_positional_number(1))
-                .unwrap_or(1.0);
+                .unwrap_or(1.0) as f64;
+            
+            // Handle r1/r2 (cone) or d1/d2 (cone with diameter)
+            let r1 = (params
+                .get_number("r1")
+                .or_else(|| params.get_number("d1").map(|d| d / 2.0))
+                .unwrap_or(r as f32)) as f64;
+            let r2 = (params
+                .get_number("r2")
+                .or_else(|| params.get_number("d2").map(|d| d / 2.0))
+                .unwrap_or(r as f32)) as f64;
+            
+            let center = params.get_boolean("center").unwrap_or(false);
             let fn_ = params.get_number("$fn").map(|v| v as u32).unwrap_or(32);
-            Ok(Some(Node::new(NodeKind::Cylinder { h, r, fn_ })))
+            
+            // If r1 != r2, use Cone node; otherwise use Cylinder
+            if (r1 - r2).abs() > 1e-6 {
+                // Cone with center adjustment
+                let mut node = Node::new(NodeKind::Cone { h, r1, r2, fn_ });
+                if center {
+                    // Center the cone by translating down by h/2
+                    node = Node::new(NodeKind::Transform {
+                        op: TransformOp::Translate(Vector3::new(0.0, 0.0, -h / 2.0)),
+                        children: vec![node],
+                    });
+                }
+                Ok(Some(node))
+            } else {
+                // Regular cylinder with center adjustment
+                let mut node = Node::new(NodeKind::Cylinder { h, r: r1, fn_ });
+                if center {
+                    // Center the cylinder by translating down by h/2
+                    node = Node::new(NodeKind::Transform {
+                        op: TransformOp::Translate(Vector3::new(0.0, 0.0, -h / 2.0)),
+                        children: vec![node],
+                    });
+                }
+                Ok(Some(node))
+            }
         }
         _ => Ok(None),
     }
@@ -146,6 +188,21 @@ fn parse_transform(pair: pest::iterators::Pair<Rule>) -> Result<Option<Node>> {
 
             Ok(Some(Node::new(NodeKind::Transform {
                 op: TransformOp::Scale(v),
+                children,
+            })))
+        }
+        Rule::mirror_stmt => {
+            let mut inner_pairs = inner.into_inner();
+            let params = parse_params_from_list(inner_pairs.next().unwrap())?;
+            let children = parse_block_or_stmt(inner_pairs.next().unwrap())?;
+
+            let axis = params
+                .get_vector("v")
+                .or_else(|| params.get_positional_vector(0))
+                .unwrap_or(Vector3::new(1.0, 0.0, 0.0));
+
+            Ok(Some(Node::new(NodeKind::Transform {
+                op: TransformOp::Mirror(axis),
                 children,
             })))
         }
@@ -320,9 +377,9 @@ fn parse_expr(pair: pest::iterators::Pair<Rule>) -> Result<Value> {
             }
 
             let v = match values.len() {
-                1 => Vector3::new(values[0], values[0], values[0]),
-                2 => Vector3::new(values[0], values[1], 0.0),
-                3 => Vector3::new(values[0], values[1], values[2]),
+                1 => Vector3::new(values[0] as f64, values[0] as f64, values[0] as f64),
+                2 => Vector3::new(values[0] as f64, values[1] as f64, 0.0),
+                3 => Vector3::new(values[0] as f64, values[1] as f64, values[2] as f64),
                 _ => Vector3::zeros(),
             };
 
@@ -359,6 +416,72 @@ mod tests {
     #[test]
     fn test_parse_boolean() {
         let result = parse_scad("difference() { cube(10); sphere(8); }");
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_parse_variable_assignment() {
+        // Simple variable assignment
+        let result = parse_scad("width = 50;");
+        assert!(result.is_ok(), "Failed to parse simple variable assignment");
+    }
+
+    #[test]
+    fn test_parse_multiple_variable_assignments() {
+        // Multiple variable assignments
+        let result = parse_scad(
+            "width = 50;\nheight = 30;\ndepth = 40;"
+        );
+        assert!(result.is_ok(), "Failed to parse multiple variable assignments");
+    }
+
+    #[test]
+    fn test_parse_variable_assignment_with_geometry() {
+        // Variable assignment followed by geometry (the failing case)
+        let result = parse_scad(
+            "width = 50;\nheight = 30;\ncube([width, height, 10]);"
+        );
+        assert!(result.is_ok(), "Failed to parse variable assignments with geometry");
+    }
+
+    #[test]
+    fn test_parse_parametric_box_example() {
+        // Simplified version that tests variable assignments (the original failing case)
+        // Note: Arithmetic expressions like "width - wall_thickness*2" are not yet supported
+        let code = r#"// Parametric box
+width = 50;
+height = 30;
+depth = 40;
+wall_thickness = 2;
+corner_radius = 5;
+
+difference() {
+    cube([width, depth, height]);
+    cube([width, depth, height]);
+}"#;
+        let result = parse_scad(code);
+        assert!(result.is_ok(), "Failed to parse parametric box example with variables");
+    }
+
+    #[test]
+    fn test_parse_variable_with_number() {
+        // Variable assignment with number
+        let result = parse_scad("size = 10;");
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_parse_variable_with_vector() {
+        // Variable assignment with vector
+        let result = parse_scad("position = [10, 20, 30];");
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_parse_variable_with_expression() {
+        // Variable assignment referencing another variable (ident in expr)
+        // Note: This tests parsing, not evaluation - variable substitution is handled later
+        let result = parse_scad("width = 50;\nheight = width;");
         assert!(result.is_ok());
     }
 }

@@ -6,14 +6,40 @@
 use super::{ComparisonResult, MeshDiff, Reporter, Runner};
 use anyhow::{Context, Result};
 use colored::Colorize;
-use std::path::Path;
+use std::fs;
+use std::path::{Path, PathBuf};
 use tempfile::TempDir;
+
+use crate::evaluation::{generate_diff_image, render_stl_to_png};
+
+#[derive(Debug, Clone)]
+pub struct PreviewConfig {
+    pub output_dir: PathBuf,
+    pub copy_stl: bool,
+    pub generate_diff: bool,
+}
+
+impl PreviewConfig {
+    pub fn new(output_dir: PathBuf) -> Self {
+        Self {
+            output_dir,
+            copy_stl: true,
+            generate_diff: true,
+        }
+    }
+
+    pub fn for_input(root: &Path, input: &Path) -> Self {
+        let slug = sanitize_identifier(input);
+        Self::new(root.join(slug))
+    }
+}
 
 /// Compare Polyframe output with OpenSCAD output
 pub fn compare_with_openscad(
     input: &Path,
     tolerance: f32,
     verbose: bool,
+    preview: Option<PreviewConfig>,
 ) -> Result<ComparisonResult> {
     let runner = Runner::new();
 
@@ -49,6 +75,12 @@ pub fn compare_with_openscad(
             triangle_count_b: result.mesh.triangle_count(),
             tolerance,
             note: None,
+            polyframe_preview: None,
+            openscad_preview: None,
+            diff_preview: None,
+            visual_diff_delta: None,
+            polyframe_stl: None,
+            openscad_stl: None,
         });
     }
 
@@ -89,7 +121,50 @@ pub fn compare_with_openscad(
         .context("Failed to load Polyframe STL")?;
 
     // Compare meshes
-    let result = MeshDiff::compare(&polyframe_mesh, &openscad_mesh, tolerance);
+    let mut result = MeshDiff::compare(&polyframe_mesh, &openscad_mesh, tolerance);
+
+    if let Some(preview_cfg) = preview {
+        fs::create_dir_all(&preview_cfg.output_dir).with_context(|| {
+            format!(
+                "Failed to create preview directory {}",
+                preview_cfg.output_dir.display()
+            )
+        })?;
+
+        if preview_cfg.copy_stl {
+            let pf_stl = preview_cfg.output_dir.join("polyframe.stl");
+            let os_stl = preview_cfg.output_dir.join("openscad.stl");
+            fs::copy(&polyframe_output, &pf_stl).with_context(|| {
+                format!(
+                    "Failed to copy Polyframe STL into {}",
+                    pf_stl.display()
+                )
+            })?;
+            fs::copy(&openscad_output, &os_stl).with_context(|| {
+                format!("Failed to copy OpenSCAD STL into {}", os_stl.display())
+            })?;
+            result.polyframe_stl = Some(pf_stl);
+            result.openscad_stl = Some(os_stl);
+        }
+
+        let pf_png = preview_cfg.output_dir.join("polyframe.png");
+        render_stl_to_png(&polyframe_output, &pf_png)
+            .context("Failed to render Polyframe STL preview")?;
+        result.polyframe_preview = Some(pf_png.clone());
+
+        let os_png = preview_cfg.output_dir.join("openscad.png");
+        render_stl_to_png(&openscad_output, &os_png)
+            .context("Failed to render OpenSCAD STL preview")?;
+        result.openscad_preview = Some(os_png.clone());
+
+        if preview_cfg.generate_diff {
+            let diff_png = preview_cfg.output_dir.join("diff.png");
+            let delta =
+                generate_diff_image(&os_png, &pf_png, &diff_png).context("Failed to generate visual diff")?;
+            result.visual_diff_delta = Some(delta);
+            result.diff_preview = Some(diff_png);
+        }
+    }
 
     // Report results
     if verbose {
@@ -109,11 +184,13 @@ pub fn batch_compare(
     files: &[&Path],
     tolerance: f32,
     verbose: bool,
+    preview_root: Option<&Path>,
 ) -> Result<Vec<(String, ComparisonResult)>> {
     let mut results = Vec::new();
 
     for file in files {
-        let result = compare_with_openscad(file, tolerance, verbose)?;
+        let preview_cfg = preview_root.map(|root| PreviewConfig::for_input(root, file));
+        let result = compare_with_openscad(file, tolerance, verbose, preview_cfg)?;
         results.push((file.to_str().unwrap().to_string(), result));
     }
 
@@ -129,11 +206,11 @@ pub fn batch_compare(
 
         println!(
             "{} {} | {} {} | {} {}",
-            "Total:".bright_black(),
+            "Total:".white(),
             total.to_string().cyan(),
-            "Passed:".bright_black(),
+            "Passed:".white(),
             passed.to_string().green(),
-            "Failed:".bright_black(),
+            "Failed:".white(),
             if failed > 0 {
                 failed.to_string().red()
             } else {
@@ -154,6 +231,25 @@ pub fn batch_compare(
     }
 
     Ok(results)
+}
+
+fn sanitize_identifier(path: &Path) -> String {
+    let raw = path.to_string_lossy();
+    let mut slug = String::with_capacity(raw.len());
+    for ch in raw.chars() {
+        if ch.is_ascii_alphanumeric() {
+            slug.push(ch);
+        } else {
+            slug.push('_');
+        }
+    }
+
+    let trimmed = slug.trim_matches('_');
+    if trimmed.is_empty() {
+        "preview".to_string()
+    } else {
+        trimmed.to_string()
+    }
 }
 
 #[cfg(test)]

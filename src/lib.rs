@@ -14,6 +14,7 @@ pub mod geometry;
 pub mod io;
 pub mod kernel;
 pub mod utils;
+pub mod validation;
 
 #[cfg(feature = "wasm")]
 pub mod ffi;

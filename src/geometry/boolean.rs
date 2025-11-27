@@ -15,12 +15,38 @@ pub enum BooleanOp {
     Intersection,
 }
 
+/// Quality level for boolean operations
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum BooleanQuality {
+    /// Fast implementation (uses simple point-in-mesh tests)
+    Fast,
+    /// Robust implementation (uses intersection splitting and robust predicates)
+    Robust,
+}
+
+impl Default for BooleanQuality {
+    fn default() -> Self {
+        BooleanQuality::Fast
+    }
+}
+
 /// Perform boolean operation between two meshes
+/// Defaults to Robust quality for better results
 pub fn perform_boolean_operation(mesh_a: &Mesh, mesh_b: &Mesh, op: BooleanOp) -> Result<Mesh> {
+    perform_boolean_operation_with_quality(mesh_a, mesh_b, op, BooleanQuality::Robust)
+}
+
+/// Perform boolean operation with specified quality
+pub fn perform_boolean_operation_with_quality(
+    mesh_a: &Mesh,
+    mesh_b: &Mesh,
+    op: BooleanOp,
+    quality: BooleanQuality,
+) -> Result<Mesh> {
     use super::csg;
 
     match op {
-        BooleanOp::Union => csg::csg_union(mesh_a, mesh_b),
+        BooleanOp::Union => csg::csg_union_with_quality(mesh_a, mesh_b, quality),
         BooleanOp::Difference => csg::csg_difference(mesh_a, mesh_b),
         BooleanOp::Intersection => csg::csg_intersection(mesh_a, mesh_b),
     }
@@ -29,7 +55,13 @@ pub fn perform_boolean_operation(mesh_a: &Mesh, mesh_b: &Mesh, op: BooleanOp) ->
 /// Convert Mesh to parry3d TriMesh
 #[allow(dead_code)]
 fn mesh_to_trimesh(mesh: &Mesh) -> TriMesh {
-    let vertices: Vec<Point3<f32>> = mesh.vertices.iter().map(|v| v.position).collect();
+    let vertices: Vec<parry3d::math::Point<f32>> = mesh.vertices.iter().map(|v| {
+        parry3d::math::Point::new(
+            v.position.x as f32,
+            v.position.y as f32,
+            v.position.z as f32,
+        )
+    }).collect();
 
     let indices: Vec<[u32; 3]> = mesh
         .triangles
@@ -54,7 +86,8 @@ fn trimesh_to_mesh(trimesh: &TriMesh) -> Mesh {
     for vertex in trimesh.vertices() {
         // Calculate normal (placeholder, should be computed properly)
         let normal = nalgebra::Vector3::new(0.0, 1.0, 0.0);
-        mesh.add_vertex(Vertex::new(*vertex, normal));
+        let position = Point3::new(vertex.x as f64, vertex.y as f64, vertex.z as f64);
+        mesh.add_vertex(Vertex::new(position, normal));
     }
 
     for triangle in trimesh.indices() {

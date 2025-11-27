@@ -41,7 +41,7 @@ impl Evaluator {
         Ok(mesh)
     }
 
-    fn evaluate_node(&self, kind: &NodeKind, transform: &Matrix4<f32>) -> Result<Mesh> {
+    fn evaluate_node(&self, kind: &NodeKind, transform: &Matrix4<f64>) -> Result<Mesh> {
         match kind {
             NodeKind::Cube { size, center } => {
                 let mut mesh = Primitive::cube(*size, *center).to_mesh();
@@ -96,7 +96,7 @@ impl Evaluator {
     fn evaluate_boolean(
         &self,
         children: &[Node],
-        transform: &Matrix4<f32>,
+        transform: &Matrix4<f64>,
         op: BooleanOp,
     ) -> Result<Mesh> {
         if children.is_empty() {
@@ -124,5 +124,87 @@ impl Evaluator {
 impl Default for Evaluator {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::ast::TransformOp;
+    use nalgebra::Vector3;
+
+    #[test]
+    fn test_difference_with_transforms() {
+        // Test difference operation with transformed children
+        // This simulates: difference() { cube(20); translate([10,0,0]) sphere(5); }
+        let evaluator = Evaluator::new();
+
+        let cube = Node::new(NodeKind::Cube {
+            size: Vector3::new(20.0, 20.0, 20.0),
+            center: false,
+        });
+
+        let sphere = Node::new(NodeKind::Sphere { r: 5.0, fn_: 16 });
+        let translate_op = TransformOp::Translate(Vector3::new(10.0, 0.0, 0.0));
+        let transformed_sphere = Node::new(NodeKind::Transform {
+            op: translate_op,
+            children: vec![sphere],
+        });
+
+        let difference = Node::new(NodeKind::Difference(vec![cube, transformed_sphere]));
+
+        let result = evaluator.evaluate(&difference);
+        assert!(result.is_ok());
+        let mesh = result.unwrap();
+        assert!(mesh.vertex_count() > 0);
+        assert!(mesh.triangle_count() > 0);
+    }
+
+    #[test]
+    fn test_difference_multiple_children_with_transforms() {
+        // Test difference with multiple transformed children
+        // Simulates mechanical part scenario
+        let evaluator = Evaluator::new();
+
+        let base = Node::new(NodeKind::Cube {
+            size: Vector3::new(50.0, 30.0, 5.0),
+            center: false,
+        });
+
+        // First cylinder hole
+        let cyl1 = Node::new(NodeKind::Cylinder {
+            h: 32.0,
+            r: 3.0,
+            fn_: 16,
+        });
+        let trans1 = TransformOp::Translate(Vector3::new(15.0, 15.0, -1.0));
+        let transformed_cyl1 = Node::new(NodeKind::Transform {
+            op: trans1,
+            children: vec![cyl1],
+        });
+
+        // Second cylinder hole
+        let cyl2 = Node::new(NodeKind::Cylinder {
+            h: 32.0,
+            r: 3.0,
+            fn_: 16,
+        });
+        let trans2 = TransformOp::Translate(Vector3::new(35.0, 15.0, -1.0));
+        let transformed_cyl2 = Node::new(NodeKind::Transform {
+            op: trans2,
+            children: vec![cyl2],
+        });
+
+        let difference = Node::new(NodeKind::Difference(vec![
+            base,
+            transformed_cyl1,
+            transformed_cyl2,
+        ]));
+
+        let result = evaluator.evaluate(&difference);
+        assert!(result.is_ok());
+        let mesh = result.unwrap();
+        assert!(mesh.vertex_count() > 0);
+        assert!(mesh.triangle_count() > 0);
     }
 }

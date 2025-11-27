@@ -46,7 +46,7 @@ fn test_render_and_compare(file_path: &str, tolerance: f32, expected_min_vertice
     // If OpenSCAD is available, do comparison
     if is_openscad_available() {
         println!("  OpenSCAD available, running comparison...");
-        match compare_with_openscad(path, tolerance, false) {
+        match compare_with_openscad(path, tolerance, false, None) {
             Ok(comparison) => {
                 println!(
                     "  Comparison result: {}",

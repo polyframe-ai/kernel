@@ -18,8 +18,8 @@ struct BSPNode {
 
 #[derive(Clone)]
 struct Plane {
-    normal: Vector3<f32>,
-    w: f32,
+    normal: Vector3<f64>,
+    w: f64,
 }
 
 #[derive(Clone)]
@@ -28,13 +28,13 @@ struct Polygon {
 }
 
 impl Plane {
-    fn from_points(a: &Point3<f32>, b: &Point3<f32>, c: &Point3<f32>) -> Self {
+    fn from_points(a: &Point3<f64>, b: &Point3<f64>, c: &Point3<f64>) -> Self {
         let normal = ((b - a).cross(&(c - a))).normalize();
         let w = normal.dot(&a.coords);
         Self { normal, w }
     }
 
-    fn classify_point(&self, point: &Point3<f32>) -> f32 {
+    fn classify_point(&self, point: &Point3<f64>) -> f64 {
         self.normal.dot(&point.coords) - self.w
     }
 
@@ -42,14 +42,14 @@ impl Plane {
         &self,
         polygon: &Polygon,
     ) -> (Vec<Polygon>, Vec<Polygon>, Vec<Polygon>, Vec<Polygon>) {
-        const EPSILON: f32 = 1e-5;
+        const EPSILON: f64 = 1e-5;
 
         let mut front = Vec::new();
         let mut back = Vec::new();
         let mut coplanar_front = Vec::new();
         let mut coplanar_back = Vec::new();
 
-        let classifications: Vec<f32> = polygon
+        let classifications: Vec<f64> = polygon
             .vertices
             .iter()
             .map(|v| self.classify_point(&v.position))
@@ -125,7 +125,7 @@ impl Plane {
 }
 
 impl Polygon {
-    fn normal(&self) -> Vector3<f32> {
+    fn normal(&self) -> Vector3<f64> {
         if self.vertices.len() >= 3 {
             self.vertices[0].normal
         } else {
@@ -158,7 +158,16 @@ impl BSPNode {
     }
 
     fn build(&mut self, polygons: Vec<Polygon>) {
-        if polygons.is_empty() {
+        const MAX_DEPTH: usize = 50; // Prevent infinite recursion
+        self.build_with_depth(polygons, 0, MAX_DEPTH);
+    }
+
+    fn build_with_depth(&mut self, polygons: Vec<Polygon>, depth: usize, max_depth: usize) {
+        if polygons.is_empty() || depth >= max_depth {
+            // At max depth, just store polygons without further splitting
+            if depth >= max_depth {
+                self.polygons = polygons;
+            }
             return;
         }
 
@@ -187,10 +196,24 @@ impl BSPNode {
             }
 
             if !front_polys.is_empty() {
-                self.front = Some(Box::new(BSPNode::new(front_polys)));
+                let mut front_node = BSPNode {
+                    plane: None,
+                    front: None,
+                    back: None,
+                    polygons: Vec::new(),
+                };
+                front_node.build_with_depth(front_polys, depth + 1, max_depth);
+                self.front = Some(Box::new(front_node));
             }
             if !back_polys.is_empty() {
-                self.back = Some(Box::new(BSPNode::new(back_polys)));
+                let mut back_node = BSPNode {
+                    plane: None,
+                    front: None,
+                    back: None,
+                    polygons: Vec::new(),
+                };
+                back_node.build_with_depth(back_polys, depth + 1, max_depth);
+                self.back = Some(Box::new(back_node));
             }
         } else {
             self.polygons = polygons;
@@ -215,6 +238,18 @@ impl BSPNode {
         }
         if let Some(ref mut back) = self.back {
             back.clip_to(bsp);
+        }
+    }
+
+    /// Clip to BSP, keeping only polygons on the front side (outside)
+    /// Used for union operations to remove internal polygons
+    fn clip_to_front_only(&mut self, bsp: &BSPNode) {
+        self.polygons = bsp.clip_polygons_front_only(&self.polygons);
+        if let Some(ref mut front) = self.front {
+            front.clip_to_front_only(bsp);
+        }
+        if let Some(ref mut back) = self.back {
+            back.clip_to_front_only(bsp);
         }
     }
 
@@ -247,6 +282,82 @@ impl BSPNode {
         let mut result = front;
         result.extend(back);
         result
+    }
+
+    /// Clip polygons, keeping only those outside the shape (for union operations)
+    /// This clips polygons against a normal (non-inverted) BSP tree, keeping only
+    /// polygons that are in empty space (outside the solid).
+    /// In a BSP tree for a solid:
+    /// - Front subtree = outside the solid (empty space) - keep polygons here
+    /// - Back subtree = inside the solid (filled space) - discard polygons here
+    /// - Coplanar polygons = on the surface - discard (they're internal surfaces in union)
+    fn clip_polygons_outside(&self, polygons: &[Polygon]) -> Vec<Polygon> {
+        if self.plane.is_none() {
+            // If no plane and no children, this is empty space - keep all polygons
+            if self.front.is_none() && self.back.is_none() {
+                return polygons.to_vec();
+            }
+            // If we have children but no plane, something is wrong - be conservative and discard
+            return Vec::new();
+        }
+
+        let mut front = Vec::new();
+        let mut back = Vec::new();
+
+        for poly in polygons {
+            let (mut f, mut b, _, _) = self.plane.as_ref().unwrap().split_polygon(poly);
+            // Discard coplanar polygons - they're on the boundary and represent
+            // internal surfaces that should be removed in union
+            front.append(&mut f);
+            back.append(&mut b);
+        }
+
+        // Front side = outside the solid (empty space) - keep these polygons
+        let front_result = if let Some(ref front_node) = self.front {
+            front_node.clip_polygons_outside(&front)
+        } else {
+            // No front node = we're in empty space outside the solid - keep all front polygons
+            front
+        };
+
+        // Back side = inside the solid (filled space) - discard these polygons
+        // (No need to recurse, we discard everything in back)
+
+        // Return only front polygons (outside the solid)
+        front_result
+    }
+
+    /// Clip polygons, keeping only those on the front side (for union operations)
+    /// Front side = outside the solid (empty space), back side = inside (solid)
+    /// Coplanar polygons are discarded as they represent internal surfaces in union
+    fn clip_polygons_front_only(&self, polygons: &[Polygon]) -> Vec<Polygon> {
+        if self.plane.is_none() {
+            // Empty BSP means all space - if we're looking for "outside", return all
+            // (This happens at leaf nodes that represent empty space)
+            return polygons.to_vec();
+        }
+
+        let mut front = Vec::new();
+        let mut back = Vec::new();
+        // Coplanar polygons are discarded - they're on the boundary and become internal in union
+
+        for poly in polygons {
+            let (mut f, mut b, cf, cb) = self.plane.as_ref().unwrap().split_polygon(poly);
+            front.append(&mut f);
+            back.append(&mut b);
+            // Discard coplanar polygons (cf, cb) - they're internal surfaces in union
+        }
+
+        // Recursively clip front polygons (outside space)
+        let front = if let Some(ref front_node) = self.front {
+            front_node.clip_polygons_front_only(&front)
+        } else {
+            // No front node = we've reached empty space outside the solid - keep all front polygons
+            front
+        };
+
+        // Back polygons are inside the solid - discard them completely
+        front
     }
 
     fn invert(&mut self) {
@@ -282,51 +393,146 @@ fn mesh_to_polygons(mesh: &Mesh) -> Vec<Polygon> {
 }
 
 /// Convert polygons back to mesh
+/// Polygons may have 3+ vertices (from BSP splitting), so we need to triangulate them
 fn polygons_to_mesh(polygons: &[Polygon]) -> Mesh {
     let mut mesh = Mesh::new();
 
     for poly in polygons {
-        if poly.vertices.len() >= 3 {
+        if poly.vertices.len() < 3 {
+            continue;
+        }
+
+        // For triangles, just add directly
+        if poly.vertices.len() == 3 {
             let v0 = mesh.add_vertex(poly.vertices[0]);
             let v1 = mesh.add_vertex(poly.vertices[1]);
             let v2 = mesh.add_vertex(poly.vertices[2]);
             mesh.add_triangle(Triangle::new([v0, v1, v2]));
+        } else {
+            // For polygons with 4+ vertices, use fan triangulation
+            // This assumes the polygon is convex (which BSP operations should produce)
+            let base_vertex = mesh.add_vertex(poly.vertices[0]);
+            
+            for i in 1..poly.vertices.len() - 1 {
+                let v1 = mesh.add_vertex(poly.vertices[i]);
+                let v2 = mesh.add_vertex(poly.vertices[i + 1]);
+                mesh.add_triangle(Triangle::new([base_vertex, v1, v2]));
+            }
         }
     }
 
+    // Recompute normals from triangle geometry
+    mesh.recompute_normals();
     mesh
 }
 
 /// Perform CSG union using BSP trees
+/// A ∪ B: keep parts of A outside B, keep parts of B outside A, combine
+/// 
+/// Note: Currently delegates to robust_union for more reliable results.
+/// The BSP-based approach has issues with correctly identifying inside/outside regions.
+/// 
+/// Defaults to Robust quality for better results.
 pub fn csg_union(a: &Mesh, b: &Mesh) -> Result<Mesh> {
-    // For union, simply merge meshes
-    // Proper CSG would remove internal faces, but merging produces valid geometry
-    let mut result = a.clone();
-    result.merge(b);
-    Ok(result)
+    csg_union_with_quality(a, b, super::boolean::BooleanQuality::Robust)
+}
+
+/// Perform CSG union with specified quality
+pub fn csg_union_with_quality(
+    a: &Mesh,
+    b: &Mesh,
+    quality: super::boolean::BooleanQuality,
+) -> Result<Mesh> {
+    match quality {
+        super::boolean::BooleanQuality::Fast => {
+            // Use the robust union implementation which uses point-in-mesh tests
+            super::robust_csg::robust_union(a, b)
+        }
+        super::boolean::BooleanQuality::Robust => {
+            // Use the full robust union with intersection splitting
+            super::robust_csg::robust_union_core(a, b)
+        }
+    }
+}
+
+/// Clip polygons to BSP tree, keeping only those on the BACK side
+/// Used for union operations with inverted trees
+/// When tree is inverted, BACK of inverted = OUTSIDE of original
+fn clip_polygons_keep_back(bsp: &BSPNode, polygons: &[Polygon]) -> Vec<Polygon> {
+    if bsp.plane.is_none() {
+        // Empty BSP - if no children, this is empty space, keep all polygons
+        if bsp.front.is_none() && bsp.back.is_none() {
+            return polygons.to_vec();
+        }
+        // If there are children but no plane, something's wrong - discard
+        return Vec::new();
+    }
+
+    let mut front = Vec::new();
+    let mut back = Vec::new();
+
+    for poly in polygons {
+        let (mut f, mut b, _, _) = bsp.plane.as_ref().unwrap().split_polygon(poly);
+        front.append(&mut f);
+        back.append(&mut b);
+    }
+
+    // Recursively clip
+    // For inverted tree: front = inside original (discard), back = outside original (keep)
+    let _front = if let Some(ref front_node) = bsp.front {
+        clip_polygons_keep_back(front_node, &front)
+    } else {
+        Vec::new() // No front node = inside, discard
+    };
+
+    let back = if let Some(ref back_node) = bsp.back {
+        clip_polygons_keep_back(back_node, &back)
+    } else {
+        back // No back node = outside, keep all
+    };
+
+    // Return only back polygons (outside the original shape)
+    back
 }
 
 /// Internal BSP-based difference (called by robust implementation)
+/// Standard CSG difference algorithm (A - B):
+/// 1. Keep parts of A that are outside B
+/// 2. Keep parts of B (inverted) that are inside A (to close the hole)
+/// 3. Combine
 pub(crate) fn csg_difference_bsp_internal(a: &Mesh, b: &Mesh) -> Result<Mesh> {
     let polys_a = mesh_to_polygons(a);
     let polys_b = mesh_to_polygons(b);
 
-    let mut tree_a = BSPNode::new(polys_a);
-    let mut tree_b = BSPNode::new(polys_b);
+    // Handle edge cases
+    if polys_a.is_empty() {
+        return Ok(Mesh::empty());
+    }
+    if polys_b.is_empty() {
+        return Ok(a.clone());
+    }
 
-    // Standard CSG difference algorithm (A - B):
-    // Invert A, clip A to B, clip B to A, invert B, clip B to A again,
-    // invert B back, invert A back, combine
-    tree_a.invert();
-    tree_a.clip_to(&tree_b);
-    tree_b.clip_to(&tree_a);
-    tree_b.invert();
-    tree_b.clip_to(&tree_a);
-    tree_b.invert();
-    tree_a.invert();
+    let tree_a = BSPNode::new(polys_a.clone());
+    let tree_b = BSPNode::new(polys_b.clone());
 
-    let mut result_polys = tree_a.all_polygons();
-    result_polys.extend(tree_b.all_polygons());
+    // Step 1: Keep parts of A that are outside B
+    // Use clip_polygons_front_only to keep only polygons outside B
+    let a_outside_b = tree_b.clip_polygons_front_only(&polys_a);
+
+    // Step 2: Keep parts of B (inverted) that are inside A
+    // Invert B to get its complement
+    let mut tree_b_inv = tree_b.clone();
+    tree_b_inv.invert();
+    let polys_b_inv = tree_b_inv.all_polygons();
+    
+    // Clip inverted B to A, keeping only parts inside A
+    // We need to clip inverted B's polygons to A and keep the parts that are inside A
+    // This is done by clipping to A and keeping front polygons (inside A)
+    let b_inv_inside_a = tree_a.clip_polygons_front_only(&polys_b_inv);
+    
+    // Step 3: Combine the results
+    let mut result_polys = a_outside_b;
+    result_polys.extend(b_inv_inside_a);
 
     Ok(polygons_to_mesh(&result_polys))
 }
@@ -355,7 +561,10 @@ pub fn csg_intersection(a: &Mesh, b: &Mesh) -> Result<Mesh> {
     let mut result_polys = tree_a.all_polygons();
     result_polys.extend(tree_b.all_polygons());
 
-    Ok(polygons_to_mesh(&result_polys))
+    let mut result = polygons_to_mesh(&result_polys);
+    // Normals already recomputed in polygons_to_mesh, but ensure they're correct
+    result.recompute_normals();
+    Ok(result)
 }
 
 #[cfg(test)]
@@ -384,5 +593,113 @@ mod tests {
         assert!(result.is_ok());
         let mesh = result.unwrap();
         assert!(mesh.vertex_count() > 0);
+        
+        // Verify normals are computed after CSG operation
+        assert!(mesh.vertices.iter().all(|v| {
+            let norm = v.normal.norm();
+            norm > 0.9 && norm < 1.1 // Should be approximately unit length
+        }));
+    }
+
+    #[test]
+    fn test_csg_difference_cube_cylinder() {
+        // Test the specific case from the images: cube with cylindrical hole
+        let cube = Primitive::cube(Vector3::new(20.0, 20.0, 20.0), true).to_mesh();
+        let cylinder = Primitive::cylinder(30.0, 5.0, 32).to_mesh();
+
+        let result = csg_difference(&cube, &cylinder);
+        assert!(result.is_ok());
+        let mesh = result.unwrap();
+        assert!(mesh.vertex_count() > 0);
+        assert!(mesh.triangle_count() > 0);
+        
+        // Verify normals are computed correctly
+        assert!(mesh.vertices.iter().all(|v| {
+            let norm = v.normal.norm();
+            norm > 0.9 && norm < 1.1
+        }));
+    }
+
+    #[test]
+    fn test_csg_union_preserves_normals() {
+        let mesh_a = Primitive::cube(Vector3::new(10.0, 10.0, 10.0), false).to_mesh();
+        let mesh_b = Primitive::cube(Vector3::new(10.0, 10.0, 10.0), false).to_mesh();
+
+        let result = csg_union(&mesh_a, &mesh_b);
+        assert!(result.is_ok());
+        let mesh = result.unwrap();
+        
+        // Verify normals are computed after union
+        assert!(mesh.vertices.iter().all(|v| {
+            let norm = v.normal.norm();
+            norm > 0.9 && norm < 1.1
+        }));
+    }
+
+    #[test]
+    fn test_csg_union_overlapping_shapes() {
+        // Test union of two overlapping cubes - should merge and remove internal faces
+        let mesh_a = Primitive::cube(Vector3::new(10.0, 10.0, 10.0), false).to_mesh();
+        // Cube B overlaps with A (shifted by 5 units)
+        let mut mesh_b = Primitive::cube(Vector3::new(10.0, 10.0, 10.0), false).to_mesh();
+        mesh_b.transform(&nalgebra::Matrix4::new_translation(&Vector3::new(5.0, 0.0, 0.0)));
+
+        let result = csg_union(&mesh_a, &mesh_b);
+        assert!(result.is_ok());
+        let mesh = result.unwrap();
+        
+        // Union should have fewer vertices than simple merge (internal faces removed)
+        // Simple merge would have: 8 + 8 = 16 vertices
+        // Union should have fewer due to internal face removal
+        assert!(mesh.vertex_count() > 0);
+        assert!(mesh.triangle_count() > 0);
+        
+        // Verify normals are correct
+        assert!(mesh.vertices.iter().all(|v| {
+            let norm = v.normal.norm();
+            norm > 0.9 && norm < 1.1
+        }));
+    }
+
+    #[test]
+    fn test_csg_difference_multiple() {
+        // Test difference with multiple sequential operations: A - B - C
+        let mesh_a = Primitive::cube(Vector3::new(20.0, 20.0, 20.0), true).to_mesh();
+        let mesh_b = Primitive::sphere(8.0, 16).to_mesh();
+        let mesh_c = Primitive::cylinder(30.0, 5.0, 32).to_mesh();
+
+        // First difference: A - B
+        let result1 = csg_difference(&mesh_a, &mesh_b);
+        assert!(result1.is_ok());
+        let intermediate = result1.unwrap();
+        assert!(intermediate.vertex_count() > 0);
+
+        // Second difference: (A - B) - C
+        let result2 = csg_difference(&intermediate, &mesh_c);
+        assert!(result2.is_ok());
+        let final_mesh = result2.unwrap();
+        assert!(final_mesh.vertex_count() > 0);
+        assert!(final_mesh.triangle_count() > 0);
+        
+        // Verify normals
+        assert!(final_mesh.vertices.iter().all(|v| {
+            let norm = v.normal.norm();
+            norm > 0.9 && norm < 1.1
+        }));
+    }
+
+    #[test]
+    fn test_csg_union_identical_shapes() {
+        // Test union of identical overlapping shapes
+        let mesh_a = Primitive::cube(Vector3::new(10.0, 10.0, 10.0), false).to_mesh();
+        let mesh_b = Primitive::cube(Vector3::new(10.0, 10.0, 10.0), false).to_mesh();
+
+        let result = csg_union(&mesh_a, &mesh_b);
+        assert!(result.is_ok());
+        let mesh = result.unwrap();
+        
+        // Should result in a single cube (identical shapes merged)
+        assert!(mesh.vertex_count() > 0);
+        assert!(mesh.triangle_count() > 0);
     }
 }

@@ -6,10 +6,38 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 /// Tolerance constants (passed to MeshDiff::compare)
 pub const BBOX_TOL: f32 = 1e-5;
+
+/// Comparison thresholds
+pub const VERTEX_DELTA_THRESHOLD: f32 = 0.02; // 2%
+pub const TRIANGLE_DELTA_THRESHOLD: f32 = 0.02; // 2%
+pub const BBOX_DELTA_THRESHOLD: f64 = 0.001; // 0.001 units per dimension
+pub const VOLUME_DELTA_THRESHOLD: f32 = 0.001; // 0.1%
+pub const SURFACE_AREA_DELTA_THRESHOLD: f32 = 0.001; // 0.1%
+
+/// Delta statistics for comparison
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeltaStats {
+    pub vertex_delta_pct: f32,
+    pub triangle_delta_pct: f32,
+    pub bbox_delta: f64,
+    pub volume_delta_pct: f32,
+    pub surface_area_delta_pct: f32,
+}
+
+/// Complete diff result with geometry stats
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DiffResult {
+    pub file: PathBuf,
+    pub openscad: crate::geometry::GeometryStats,
+    pub polyframe: crate::geometry::GeometryStats,
+    pub passed: bool,
+    pub deltas: DeltaStats,
+    pub error: Option<String>,
+}
 
 /// Comparison result
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -23,6 +51,84 @@ pub struct Comparison {
     pub vertex_count_openscad: usize,
     pub triangle_count_poly: usize,
     pub triangle_count_openscad: usize,
+}
+
+/// Compute geometry statistics from a mesh
+pub fn compute_stats(mesh: &crate::geometry::Mesh) -> crate::geometry::GeometryStats {
+    crate::geometry::analyze(mesh)
+}
+
+/// Compare two meshes with enhanced geometry statistics
+pub fn compare_mesh(
+    openscad_mesh: &crate::geometry::Mesh,
+    polyframe_mesh: &crate::geometry::Mesh,
+) -> Result<DiffResult> {
+    let openscad_stats = compute_stats(openscad_mesh);
+    let polyframe_stats = compute_stats(polyframe_mesh);
+
+    // Calculate deltas
+    let vertex_delta_pct = if openscad_stats.vertex_count > 0 {
+        ((polyframe_stats.vertex_count as f32 - openscad_stats.vertex_count as f32)
+            / openscad_stats.vertex_count as f32)
+            .abs()
+    } else {
+        0.0
+    };
+
+    let triangle_delta_pct = if openscad_stats.triangle_count > 0 {
+        ((polyframe_stats.triangle_count as f32 - openscad_stats.triangle_count as f32)
+            / openscad_stats.triangle_count as f32)
+            .abs()
+    } else {
+        0.0
+    };
+
+    // Bounding box delta (max difference across all dimensions)
+    let bbox_delta = {
+        let mut max_delta: f64 = 0.0;
+        for i in 0..6 {
+            let delta = (polyframe_stats.bbox[i] - openscad_stats.bbox[i]).abs();
+            max_delta = max_delta.max(delta);
+        }
+        max_delta
+    };
+
+    let volume_delta_pct = if openscad_stats.volume > 0.0 {
+        ((polyframe_stats.volume - openscad_stats.volume).abs() / openscad_stats.volume) as f32
+    } else {
+        0.0
+    };
+
+    let surface_area_delta_pct = if openscad_stats.surface_area > 0.0 {
+        ((polyframe_stats.surface_area - openscad_stats.surface_area).abs()
+            / openscad_stats.surface_area) as f32
+    } else {
+        0.0
+    };
+
+    let deltas = DeltaStats {
+        vertex_delta_pct,
+        triangle_delta_pct,
+        bbox_delta,
+        volume_delta_pct,
+        surface_area_delta_pct,
+    };
+
+    // Check if all thresholds are met
+    let passed = vertex_delta_pct <= VERTEX_DELTA_THRESHOLD
+        && triangle_delta_pct <= TRIANGLE_DELTA_THRESHOLD
+        && bbox_delta <= BBOX_DELTA_THRESHOLD
+        && volume_delta_pct <= VOLUME_DELTA_THRESHOLD
+        && surface_area_delta_pct <= SURFACE_AREA_DELTA_THRESHOLD;
+
+    Ok(DiffResult {
+        file: PathBuf::from(""), // Will be set by caller
+        openscad: openscad_stats,
+        polyframe: polyframe_stats,
+        passed,
+        deltas,
+        error: None,
+    })
 }
 
 /// Compare two STL files

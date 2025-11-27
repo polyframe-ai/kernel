@@ -18,9 +18,9 @@ impl Reporter {
         poly_time: Duration,
         openscad_time: Option<Duration>,
     ) {
-        println!("\n{}", "━".repeat(80).bright_black());
+        println!("\n{}", "━".repeat(80).white());
         println!("{} {}", "File:".bold(), file.cyan());
-        println!("{}", "━".repeat(80).bright_black());
+        println!("{}", "━".repeat(80).white());
 
         // Status
         if result.passed {
@@ -66,45 +66,45 @@ impl Reporter {
             let speedup = openscad_duration.as_secs_f64() / poly_time.as_secs_f64();
             println!(
                 "  {} {:>8} | {} {:>8} | {} {:.2}x",
-                "OpenSCAD:".bright_black(),
+                "OpenSCAD:".white(),
                 Self::format_duration(openscad_duration).yellow(),
-                "Polyframe:".bright_black(),
+                "Polyframe:".white(),
                 Self::format_duration(poly_time).cyan(),
-                "Speedup:".bright_black(),
+                "Speedup:".white(),
                 speedup
             );
         } else {
             println!(
                 "  {} {}",
-                "Polyframe:".bright_black(),
+                "Polyframe:".white(),
                 Self::format_duration(poly_time).cyan()
             );
         }
 
-        println!("{}", "━".repeat(80).bright_black());
+        println!("{}", "━".repeat(80).white());
     }
 
     /// Report simple render result
     pub fn report_render(file: &str, vertices: usize, triangles: usize, duration: Duration) {
-        println!("\n{}", "━".repeat(80).bright_black());
+        println!("\n{}", "━".repeat(80).white());
         println!("{} {}", "Rendered:".bold(), file.cyan());
-        println!("{}", "━".repeat(80).bright_black());
+        println!("{}", "━".repeat(80).white());
         println!(
             "  {} {}",
-            "Vertices:".bright_black(),
+            "Vertices:".white(),
             vertices.to_string().cyan()
         );
         println!(
             "  {} {}",
-            "Triangles:".bright_black(),
+            "Triangles:".white(),
             triangles.to_string().cyan()
         );
         println!(
             "  {} {}",
-            "Time:".bright_black(),
+            "Time:".white(),
             Self::format_duration(duration).yellow()
         );
-        println!("{}", "━".repeat(80).bright_black());
+        println!("{}", "━".repeat(80).white());
     }
 
     /// Report error
@@ -146,9 +146,9 @@ impl Reporter {
 
         println!(
             "  {} {} {}",
-            format!("{}:", name).bright_black(),
+            format!("{}:", name).white(),
             formatted_value,
-            delta_str.bright_black()
+            delta_str.white()
         );
     }
 
@@ -167,7 +167,7 @@ impl Reporter {
 
     /// Print progress bar
     pub fn progress(message: &str) {
-        println!("{} {}...", "⏳".bright_blue(), message.bright_black());
+        println!("{} {}...", "⏳".bright_blue(), message.white());
     }
 
     /// Print success message

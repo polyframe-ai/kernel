@@ -36,11 +36,11 @@ fn export_stl_binary(mesh: &Mesh, path: &Path) -> Result<()> {
             let normal = (v0.normal + v1.normal + v2.normal) / 3.0;
 
             StlTriangle {
-                normal: Normal::new([normal.x, normal.y, normal.z]),
+                normal: Normal::new([normal.x as f32, normal.y as f32, normal.z as f32]),
                 vertices: [
-                    StlVertex::new([v0.position.x, v0.position.y, v0.position.z]),
-                    StlVertex::new([v1.position.x, v1.position.y, v1.position.z]),
-                    StlVertex::new([v2.position.x, v2.position.y, v2.position.z]),
+                    StlVertex::new([v0.position.x as f32, v0.position.y as f32, v0.position.z as f32]),
+                    StlVertex::new([v1.position.x as f32, v1.position.y as f32, v1.position.z as f32]),
+                    StlVertex::new([v2.position.x as f32, v2.position.y as f32, v2.position.z as f32]),
                 ],
             }
         })

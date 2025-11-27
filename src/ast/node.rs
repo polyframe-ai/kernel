@@ -6,7 +6,7 @@
 use serde::{Deserialize, Serialize};
 
 /// 3D Vector type alias
-pub type Vec3 = nalgebra::Vector3<f32>;
+pub type Vec3 = nalgebra::Vector3<f64>;
 
 /// AST Node representing a single operation or primitive
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -34,18 +34,18 @@ pub enum NodeKind {
         center: bool,
     },
     Sphere {
-        r: f32,
+        r: f64,
         fn_: u32,
     },
     Cylinder {
-        h: f32,
-        r: f32,
+        h: f64,
+        r: f64,
         fn_: u32,
     },
     Cone {
-        h: f32,
-        r1: f32,
-        r2: f32,
+        h: f64,
+        r1: f64,
+        r2: f64,
         fn_: u32,
     },
 
@@ -84,12 +84,12 @@ pub enum TransformOp {
     Rotate(Vec3),
     Scale(Vec3),
     Mirror(Vec3),
-    Multmatrix(nalgebra::Matrix4<f32>),
+    Multmatrix(nalgebra::Matrix4<f64>),
 }
 
 impl TransformOp {
     /// Convert transformation to a 4x4 matrix
-    pub fn to_matrix(&self) -> nalgebra::Matrix4<f32> {
+    pub fn to_matrix(&self) -> nalgebra::Matrix4<f64> {
         use nalgebra::{Matrix4, UnitQuaternion, Vector3};
 
         match self {

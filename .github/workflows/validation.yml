@@ -1,0 +1,131 @@
+name: Kernel Validation
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+jobs:
+  validate:
+    name: Run Validation Suite
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          components: rustfmt, clippy
+
+      - name: Cache cargo dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Install OpenSCAD (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openscad
+
+      - name: Install OpenSCAD (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew install openscad
+
+      - name: Install OpenSCAD (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          choco install openscad -y
+
+      - name: Build validation binary
+        run: cargo build --bin polyframe-validate --release
+
+      - name: Run validation suite
+        run: cargo run --release --bin polyframe-validate -- all --verbose
+        continue-on-error: true
+        env:
+          OPENSCAD_PATH: ${{ matrix.os == 'windows-latest' && 'C:\Program Files\OpenSCAD\openscad.exe' || 'openscad' }}
+
+      - name: Upload validation reports
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: validation-reports-${{ matrix.os }}
+          path: |
+            tests/evaluation/outputs/validation_report.json
+            tests/evaluation/outputs/validation_report.md
+          retention-days: 30
+
+      - name: Generate summary
+        if: always()
+        run: |
+          if [ -f tests/evaluation/outputs/validation_report.json ]; then
+            echo "## Validation Results (${{ matrix.os }})" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Reports available in artifacts: validation-reports-${{ matrix.os }}" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            
+            # Extract summary from JSON (requires jq)
+            if command -v jq &> /dev/null; then
+              echo "### Summary" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "- Total Tests: $(jq -r '.total_tests' tests/evaluation/outputs/validation_report.json)" >> $GITHUB_STEP_SUMMARY
+              echo "- Passed: $(jq -r '.total_passed' tests/evaluation/outputs/validation_report.json)" >> $GITHUB_STEP_SUMMARY
+              echo "- Failed: $(jq -r '.total_failed' tests/evaluation/outputs/validation_report.json)" >> $GITHUB_STEP_SUMMARY
+              echo "- Compatibility Score: $(jq -r '.compatibility_score' tests/evaluation/outputs/validation_report.json)%" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+
+      - name: Check for failures
+        if: failure()
+        run: |
+          if [ -f tests/evaluation/outputs/validation_report.json ]; then
+            FAILED=$(jq -r '.total_failed' tests/evaluation/outputs/validation_report.json 2>/dev/null || echo "0")
+            ERRORS=$(jq -r '.total_errors' tests/evaluation/outputs/validation_report.json 2>/dev/null || echo "0")
+            if [ "$FAILED" != "0" ] || [ "$ERRORS" != "0" ]; then
+              echo "❌ Validation failed: $FAILED failed, $ERRORS errors"
+              exit 1
+            fi
+          fi
+
+  summary:
+    name: Validation Summary
+    runs-on: ubuntu-latest
+    needs: validate
+    if: always()
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: artifacts
+
+      - name: Generate combined summary
+        run: |
+          echo "# Validation Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Validation completed across all platforms." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Reports" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Download validation reports from the artifacts section." >> $GITHUB_STEP_SUMMARY
+

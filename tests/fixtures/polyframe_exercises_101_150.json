@@ -1,0 +1,330 @@
+[
+  {
+    "id": "101_mirror_transform",
+    "title": "Mirror Transformation",
+    "input": "mirror([1, 0, 0]) cube([10, 10, 10]);",
+    "validation": null
+  },
+  {
+    "id": "102_multmatrix_transform",
+    "title": "Multmatrix Transformation",
+    "input": "multmatrix([[1,0,0,5],[0,1,0,0],[0,0,1,0],[0,0,0,1]]) cube([10, 10, 10]);",
+    "validation": null
+  },
+  {
+    "id": "103_intersection_basic",
+    "title": "Basic Intersection",
+    "input": "intersection() { cube([20, 20, 20]); sphere(r=15); }",
+    "validation": null
+  },
+  {
+    "id": "104_cylinder_center",
+    "title": "Centered Cylinder",
+    "input": "cylinder(h=20, r=5, center=true);",
+    "validation": null
+  },
+  {
+    "id": "105_sphere_center",
+    "title": "Centered Sphere",
+    "input": "sphere(r=10, $fn=32);",
+    "validation": null
+  },
+  {
+    "id": "106_cylinder_d1_d2",
+    "title": "Cylinder with Different Diameters",
+    "input": "cylinder(h=20, d1=10, d2=5);",
+    "validation": null
+  },
+  {
+    "id": "107_cylinder_r1_r2",
+    "title": "Cylinder with Different Radii",
+    "input": "cylinder(h=20, r1=10, r2=5);",
+    "validation": null
+  },
+  {
+    "id": "108_union_three_shapes",
+    "title": "Union of Three Shapes",
+    "input": "union() { cube([10, 10, 10]); translate([8, 0, 0]) cube([10, 10, 10]); translate([4, 4, 10]) sphere(r=5); }",
+    "validation": null
+  },
+  {
+    "id": "109_difference_multiple",
+    "title": "Difference with Multiple Subtractions",
+    "input": "difference() { cube([20, 20, 20]); translate([10, 10, 10]) sphere(r=8); translate([10, 10, -1]) cylinder(h=22, r=3); }",
+    "validation": null
+  },
+  {
+    "id": "110_intersection_complex",
+    "title": "Complex Intersection",
+    "input": "intersection() { cube([30, 30, 30], center=true); sphere(r=20); cylinder(h=40, r=15, center=true); }",
+    "validation": null
+  },
+  {
+    "id": "111_rotate_xyz",
+    "title": "Rotate on All Axes",
+    "input": "rotate([45, 45, 45]) cube([10, 10, 10]);",
+    "validation": null
+  },
+  {
+    "id": "112_scale_non_uniform",
+    "title": "Non-Uniform Scale",
+    "input": "scale([2, 1, 0.5]) cube([10, 10, 10]);",
+    "validation": null
+  },
+  {
+    "id": "113_translate_negative",
+    "title": "Negative Translation",
+    "input": "translate([-10, -5, -3]) cube([10, 10, 10]);",
+    "validation": null
+  },
+  {
+    "id": "114_nested_union_difference",
+    "title": "Nested Union and Difference",
+    "input": "difference() { union() { cube([20, 20, 20]); translate([10, 10, 20]) sphere(r=8); } translate([10, 10, 10]) sphere(r=6); }",
+    "validation": null
+  },
+  {
+    "id": "115_boolean_chain",
+    "title": "Boolean Operation Chain",
+    "input": "difference() { union() { cube([15, 15, 15]); sphere(r=10); } intersection() { cylinder(h=20, r=8); cube([20, 20, 20], center=true); } }",
+    "validation": null
+  },
+  {
+    "id": "116_sphere_fineness",
+    "title": "Sphere with High Fineness",
+    "input": "sphere(r=10, $fn=64);",
+    "validation": null
+  },
+  {
+    "id": "117_cylinder_fineness",
+    "title": "Cylinder with High Fineness",
+    "input": "cylinder(h=20, r=5, $fn=64);",
+    "validation": null
+  },
+  {
+    "id": "118_cube_center_false",
+    "title": "Cube with center=false (explicit)",
+    "input": "cube([10, 10, 10], center=false);",
+    "validation": {
+      "vertex_count": 24,
+      "triangle_count": 12
+    }
+  },
+  {
+    "id": "119_translate_rotate_scale",
+    "title": "Translate, Rotate, Scale Combined",
+    "input": "translate([10, 0, 0]) rotate([0, 45, 0]) scale([1.5, 1, 1]) cube([10, 10, 10]);",
+    "validation": null
+  },
+  {
+    "id": "120_union_empty",
+    "title": "Union with Single Child",
+    "input": "union() { cube([10, 10, 10]); }",
+    "validation": {
+      "vertex_count": 24,
+      "triangle_count": 12
+    }
+  },
+  {
+    "id": "121_difference_single",
+    "title": "Difference with Single Child",
+    "input": "difference() { cube([10, 10, 10]); }",
+    "validation": {
+      "vertex_count": 24,
+      "triangle_count": 12
+    }
+  },
+  {
+    "id": "122_intersection_single",
+    "title": "Intersection with Single Child",
+    "input": "intersection() { cube([10, 10, 10]); }",
+    "validation": {
+      "vertex_count": 24,
+      "triangle_count": 12
+    }
+  },
+  {
+    "id": "123_cylinder_tapered",
+    "title": "Tapered Cylinder",
+    "input": "cylinder(h=30, r1=10, r2=3);",
+    "validation": null
+  },
+  {
+    "id": "124_sphere_translated",
+    "title": "Translated Sphere",
+    "input": "translate([5, 5, 5]) sphere(r=8);",
+    "validation": null
+  },
+  {
+    "id": "125_cube_rotated_90",
+    "title": "Cube Rotated 90 Degrees",
+    "input": "rotate([90, 0, 0]) cube([10, 10, 10]);",
+    "validation": {
+      "vertex_count": 24,
+      "triangle_count": 12
+    }
+  },
+  {
+    "id": "126_scale_uniform",
+    "title": "Uniform Scale",
+    "input": "scale(2) cube([10, 10, 10]);",
+    "validation": null
+  },
+  {
+    "id": "127_mirror_xy",
+    "title": "Mirror Across XY Plane",
+    "input": "mirror([0, 0, 1]) cube([10, 10, 10]);",
+    "validation": null
+  },
+  {
+    "id": "128_union_overlapping",
+    "title": "Union of Overlapping Cubes",
+    "input": "union() { cube([10, 10, 10]); translate([5, 5, 5]) cube([10, 10, 10]); }",
+    "validation": null
+  },
+  {
+    "id": "129_difference_partial",
+    "title": "Partial Difference",
+    "input": "difference() { cube([20, 20, 20]); translate([10, 10, 5]) sphere(r=8); }",
+    "validation": null
+  },
+  {
+    "id": "130_intersection_partial",
+    "title": "Partial Intersection",
+    "input": "intersection() { cube([20, 20, 20]); translate([10, 10, 10]) sphere(r=12); }",
+    "validation": null
+  },
+  {
+    "id": "131_complex_nested",
+    "title": "Complex Nested Operations",
+    "input": "translate([15, 15, 15]) rotate([30, 45, 60]) difference() { union() { cube([20, 20, 20], center=true); sphere(r=12); } cylinder(h=30, r=8, center=true); }",
+    "validation": null
+  },
+  {
+    "id": "132_cylinder_flat",
+    "title": "Flat Cylinder (h=1)",
+    "input": "cylinder(h=1, r=10);",
+    "validation": null
+  },
+  {
+    "id": "133_sphere_small",
+    "title": "Small Sphere",
+    "input": "sphere(r=1);",
+    "validation": null
+  },
+  {
+    "id": "134_cube_thin",
+    "title": "Thin Cube",
+    "input": "cube([10, 10, 1]);",
+    "validation": null
+  },
+  {
+    "id": "135_boolean_all_three",
+    "title": "All Three Boolean Operations",
+    "input": "union() { difference() { cube([20, 20, 20]); sphere(r=10); } intersection() { cylinder(h=25, r=8); cube([25, 25, 25], center=true); } }",
+    "validation": null
+  },
+  {
+    "id": "136_rotate_axis",
+    "title": "Rotate Around Specific Axis",
+    "input": "rotate([0, 0, 45]) cube([10, 10, 10]);",
+    "validation": {
+      "vertex_count": 24,
+      "triangle_count": 12
+    }
+  },
+  {
+    "id": "137_scale_axis",
+    "title": "Scale on Single Axis",
+    "input": "scale([1, 1, 2]) cube([10, 10, 10]);",
+    "validation": null
+  },
+  {
+    "id": "138_mirror_axis",
+    "title": "Mirror Across Single Axis",
+    "input": "mirror([1, 0, 0]) cube([10, 10, 10]);",
+    "validation": null
+  },
+  {
+    "id": "139_cylinder_wide",
+    "title": "Wide Cylinder",
+    "input": "cylinder(h=5, r=20);",
+    "validation": null
+  },
+  {
+    "id": "140_sphere_large",
+    "title": "Large Sphere",
+    "input": "sphere(r=50);",
+    "validation": null
+  },
+  {
+    "id": "141_cube_large",
+    "title": "Large Cube",
+    "input": "cube([100, 100, 100]);",
+    "validation": {
+      "vertex_count": 24,
+      "triangle_count": 12
+    }
+  },
+  {
+    "id": "142_translate_large",
+    "title": "Large Translation",
+    "input": "translate([100, 100, 100]) cube([10, 10, 10]);",
+    "validation": {
+      "vertex_count": 24,
+      "triangle_count": 12
+    }
+  },
+  {
+    "id": "143_rotate_180",
+    "title": "180 Degree Rotation",
+    "input": "rotate([0, 180, 0]) cube([10, 10, 10]);",
+    "validation": {
+      "vertex_count": 24,
+      "triangle_count": 12
+    }
+  },
+  {
+    "id": "144_scale_half",
+    "title": "Scale to Half Size",
+    "input": "scale(0.5) cube([10, 10, 10]);",
+    "validation": null
+  },
+  {
+    "id": "145_union_four",
+    "title": "Union of Four Shapes",
+    "input": "union() { cube([10, 10, 10]); translate([12, 0, 0]) cube([10, 10, 10]); translate([0, 12, 0]) cube([10, 10, 10]); translate([12, 12, 0]) cube([10, 10, 10]); }",
+    "validation": null
+  },
+  {
+    "id": "146_difference_four",
+    "title": "Difference with Four Subtractions",
+    "input": "difference() { cube([30, 30, 30]); translate([7.5, 7.5, 7.5]) sphere(r=5); translate([22.5, 7.5, 7.5]) sphere(r=5); translate([7.5, 22.5, 7.5]) sphere(r=5); translate([22.5, 22.5, 7.5]) sphere(r=5); }",
+    "validation": null
+  },
+  {
+    "id": "147_intersection_four",
+    "title": "Intersection of Four Shapes",
+    "input": "intersection() { cube([20, 20, 20], center=true); translate([5, 0, 0]) sphere(r=12); translate([-5, 0, 0]) sphere(r=12); translate([0, 5, 0]) sphere(r=12); }",
+    "validation": null
+  },
+  {
+    "id": "148_very_complex",
+    "title": "Very Complex Combined Operations",
+    "input": "translate([20, 20, 20]) rotate([45, 45, 0]) scale([1.5, 1, 1.5]) difference() { union() { cube([25, 25, 25], center=true); translate([0, 0, 12.5]) sphere(r=15); } intersection() { cylinder(h=30, r=12, center=true); cube([30, 30, 30], center=true); } }",
+    "validation": null
+  },
+  {
+    "id": "149_cylinder_sphere_union",
+    "title": "Cylinder and Sphere Union",
+    "input": "union() { cylinder(h=20, r=5); translate([0, 0, 20]) sphere(r=5); }",
+    "validation": null
+  },
+  {
+    "id": "150_final_comprehensive",
+    "title": "Final Comprehensive Test",
+    "input": "mirror([1, 0, 0]) translate([-15, 0, 0]) rotate([0, 30, 0]) scale([1.2, 1, 0.8]) difference() { union() { cube([20, 20, 20], center=true); translate([0, 0, 10]) sphere(r=10); translate([0, 0, -10]) cylinder(h=5, r=8); } intersection() { cylinder(h=30, r=6, center=true); cube([25, 25, 25], center=true); } }",
+    "validation": null
+  }
+]
+

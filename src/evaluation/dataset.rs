@@ -3,7 +3,7 @@
 
 //! Dataset discovery for .scad files and JSON exercises
 
-use anyhow::{Context, Result};
+use anyhow::{bail, Context, Result};
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
@@ -32,6 +32,13 @@ pub struct Validation {
 pub enum DatasetSource {
     Folder(PathBuf),
     JsonFile(PathBuf),
+}
+
+/// Corpus entry for bulk loading
+#[derive(Debug, Clone)]
+pub struct CorpusEntry {
+    pub path: PathBuf,
+    pub contents: String,
 }
 
 /// Model task to execute
@@ -137,6 +144,50 @@ pub fn discover_models(paths: &[PathBuf]) -> Result<Vec<PathBuf>> {
 
     models.sort();
     Ok(models)
+}
+
+/// Load corpus entries from a directory (recursive)
+/// Supports 100-10,000 files with iterator-based loading for memory efficiency
+pub fn load_corpus(path: &str) -> Result<Vec<CorpusEntry>> {
+    let path = Path::new(path);
+    let mut entries = Vec::new();
+
+    if path.is_file() && path.extension().is_some_and(|ext| ext == "scad") {
+        let contents = std::fs::read_to_string(path)
+            .context(format!("Failed to read {}", path.display()))?;
+        entries.push(CorpusEntry {
+            path: path.to_path_buf(),
+            contents,
+        });
+    } else if path.is_dir() {
+        for entry in WalkDir::new(path)
+            .follow_links(true)
+            .into_iter()
+            .filter_map(|e| e.ok())
+        {
+            let entry_path = entry.path();
+            if entry_path.is_file() && entry_path.extension().is_some_and(|ext| ext == "scad") {
+                match std::fs::read_to_string(entry_path) {
+                    Ok(contents) => {
+                        entries.push(CorpusEntry {
+                            path: entry_path.to_path_buf(),
+                            contents,
+                        });
+                    }
+                    Err(e) => {
+                        eprintln!("Warning: Failed to read {}: {}", entry_path.display(), e);
+                    }
+                }
+            }
+        }
+    } else {
+        bail!("Path is neither a .scad file nor a directory: {}", path.display());
+    }
+
+    // Sort for consistent ordering
+    entries.sort_by_key(|e| e.path.clone());
+
+    Ok(entries)
 }
 
 #[cfg(test)]

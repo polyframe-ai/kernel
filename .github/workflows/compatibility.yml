@@ -1,0 +1,114 @@
+name: OpenSCAD Compatibility Tests
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  schedule:
+    # Run nightly at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  compatibility:
+    name: Compatibility Test Suite
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - name: Cache cargo registry
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Install OpenSCAD
+        run: |
+          if [ "$RUNNER_OS" == "Linux" ]; then
+            sudo apt-get update
+            sudo apt-get install -y openscad
+          elif [ "$RUNNER_OS" == "macOS" ]; then
+            brew install openscad
+          elif [ "$RUNNER_OS" == "Windows" ]; then
+            choco install openscad -y
+          fi
+
+      - name: Verify OpenSCAD installation
+        run: openscad --version
+
+      - name: Build Polyframe Kernel
+        run: cargo build --release --bin polyframe-eval
+
+      - name: Run evaluation suite
+        run: |
+          # Create corpus directory if it doesn't exist
+          mkdir -p tests/evaluation/datasets/corpus
+          
+          # Run evaluation (will skip if corpus is empty)
+          cargo run --release --bin polyframe-eval -- eval --dataset tests/evaluation/datasets/corpus --out tests/evaluation/outputs || true
+          
+          # Generate report
+          cargo run --release --bin polyframe-eval -- generate-report --input tests/evaluation/outputs/latest.json --output tests/evaluation/report.md || true
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: compatibility-reports-${{ matrix.os }}
+          path: |
+            tests/evaluation/outputs/*.json
+            tests/evaluation/outputs/*.md
+            tests/evaluation/outputs/diffs/*.png
+
+      - name: Comment PR with summary
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            
+            try {
+              const reportPath = path.join('tests', 'evaluation', 'outputs', 'report.md');
+              if (fs.existsSync(reportPath)) {
+                const report = fs.readFileSync(reportPath, 'utf8');
+                
+                // Extract summary from markdown
+                const summaryMatch = report.match(/## Summary\n\n([\s\S]*?)\n\n##/);
+                if (summaryMatch) {
+                  const summary = summaryMatch[1];
+                  
+                  const comment = `## 🔍 Polyframe vs OpenSCAD Compatibility
+                  
+                  ${summary}
+                  
+                  Full report available in artifacts.`;
+                  
+                  github.rest.issues.createComment({
+                    issue_number: context.issue.number,
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    body: comment
+                  });
+                }
+              }
+            } catch (error) {
+              console.log('Could not post PR comment:', error.message);
+            }
+

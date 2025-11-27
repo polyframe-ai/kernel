@@ -5,27 +5,27 @@
 
 use super::{Mesh, Triangle, Vertex};
 use nalgebra::{Point3, Vector3};
-use std::f32::consts::PI;
+use std::f64::consts::PI;
 
 /// Geometric primitives
 pub enum Primitive {
-    Cube { size: Vector3<f32>, center: bool },
-    Sphere { r: f32, fn_: u32 },
-    Cylinder { h: f32, r: f32, fn_: u32 },
-    Cone { h: f32, r1: f32, r2: f32, fn_: u32 },
+    Cube { size: Vector3<f64>, center: bool },
+    Sphere { r: f64, fn_: u32 },
+    Cylinder { h: f64, r: f64, fn_: u32 },
+    Cone { h: f64, r1: f64, r2: f64, fn_: u32 },
 }
 
 impl Primitive {
-    pub fn cube(size: Vector3<f32>, center: bool) -> Self {
+    pub fn cube(size: Vector3<f64>, center: bool) -> Self {
         Self::Cube { size, center }
     }
 
-    pub fn sphere(r: f32, fn_: u32) -> Self {
+    pub fn sphere(r: f64, fn_: u32) -> Self {
         let segments = if fn_ > 0 { fn_ } else { 32 };
         Self::Sphere { r, fn_: segments }
     }
 
-    pub fn cylinder(h: f32, r: f32, fn_: u32) -> Self {
+    pub fn cylinder(h: f64, r: f64, fn_: u32) -> Self {
         let segments = if fn_ > 0 { fn_ } else { 32 };
         Self::Cylinder {
             h,
@@ -34,7 +34,7 @@ impl Primitive {
         }
     }
 
-    pub fn cone(h: f32, r1: f32, r2: f32, fn_: u32) -> Self {
+    pub fn cone(h: f64, r1: f64, r2: f64, fn_: u32) -> Self {
         let segments = if fn_ > 0 { fn_ } else { 32 };
         Self::Cone {
             h,
@@ -54,7 +54,7 @@ impl Primitive {
     }
 }
 
-fn generate_cube_mesh(size: Vector3<f32>, center: bool) -> Mesh {
+fn generate_cube_mesh(size: Vector3<f64>, center: bool) -> Mesh {
     let mut mesh = Mesh::new();
 
     // Calculate cube positions based on center flag
@@ -118,18 +118,18 @@ fn generate_cube_mesh(size: Vector3<f32>, center: bool) -> Mesh {
     mesh
 }
 
-fn generate_sphere_mesh(radius: f32, segments: u32) -> Mesh {
+fn generate_sphere_mesh(radius: f64, segments: u32) -> Mesh {
     let mut mesh = Mesh::new();
     let stacks = segments;
     let slices = segments;
 
     for i in 0..=stacks {
-        let phi = PI * i as f32 / stacks as f32;
+        let phi = PI * i as f64 / stacks as f64;
         let y = radius * phi.cos();
         let r = radius * phi.sin();
 
         for j in 0..=slices {
-            let theta = 2.0 * PI * j as f32 / slices as f32;
+            let theta = 2.0 * PI * j as f64 / slices as f64;
             let x = r * theta.cos();
             let z = r * theta.sin();
 
@@ -161,11 +161,11 @@ fn generate_sphere_mesh(radius: f32, segments: u32) -> Mesh {
     mesh
 }
 
-fn generate_cylinder_mesh(height: f32, radius: f32, segments: u32) -> Mesh {
+fn generate_cylinder_mesh(height: f64, radius: f64, segments: u32) -> Mesh {
     generate_cone_mesh(height, radius, radius, segments)
 }
 
-fn generate_cone_mesh(height: f32, r1: f32, r2: f32, segments: u32) -> Mesh {
+fn generate_cone_mesh(height: f64, r1: f64, r2: f64, segments: u32) -> Mesh {
     let mut mesh = Mesh::new();
 
     // OpenSCAD cylinders go from z=0 to z=height (NOT centered by default)
@@ -186,7 +186,7 @@ fn generate_cone_mesh(height: f32, r1: f32, r2: f32, segments: u32) -> Mesh {
     let mut top_indices = Vec::new();
 
     for i in 0..segments {
-        let angle = 2.0 * PI * i as f32 / segments as f32;
+        let angle = 2.0 * PI * i as f64 / segments as f64;
         let cos = angle.cos();
         let sin = angle.sin();
 
@@ -221,34 +221,84 @@ fn generate_cone_mesh(height: f32, r1: f32, r2: f32, segments: u32) -> Mesh {
         ]));
     }
 
-    // Side triangles
+    // Side triangles - reuse existing vertices to maintain manifold topology
     for i in 0..segments {
         let next = (i + 1) % segments;
 
-        // Calculate side normal
-        let p1 = mesh.vertices[bottom_indices[i as usize]].position;
-        let p2 = mesh.vertices[top_indices[i as usize]].position;
-        let p3 = mesh.vertices[bottom_indices[next as usize]].position;
+        // Calculate proper cylindrical normal (radial direction from axis)
+        let angle = 2.0 * PI * (i as f64 + 0.5) / segments as f64;
+        let cos = angle.cos();
+        let sin = angle.sin();
+        let side_normal = Vector3::new(cos, sin, 0.0).normalize();
 
-        let v1 = p2 - p1;
-        let v2 = p3 - p1;
-        let normal = v1.cross(&v2).normalize();
+        // Update normals for side vertices (they'll be averaged later)
+        // For now, set them to the radial direction
+        mesh.vertices[bottom_indices[i as usize]].normal = side_normal;
+        mesh.vertices[top_indices[i as usize]].normal = side_normal;
+        
+        // Use existing vertex indices - this ensures manifold mesh
+        let bi = bottom_indices[i as usize];
+        let ti = top_indices[i as usize];
+        let bn = bottom_indices[next as usize];
+        let tn = top_indices[next as usize];
 
-        // Add side vertices with proper normals
-        let bi = mesh.add_vertex(Vertex::new(p1, normal));
-        let ti = mesh.add_vertex(Vertex::new(p2, normal));
-        let bn = mesh.add_vertex(Vertex::new(
-            mesh.vertices[bottom_indices[next as usize]].position,
-            normal,
-        ));
-        let tn = mesh.add_vertex(Vertex::new(
-            mesh.vertices[top_indices[next as usize]].position,
-            normal,
-        ));
-
+        // Add two triangles per segment
         mesh.add_triangle(Triangle::new([bi, ti, bn]));
         mesh.add_triangle(Triangle::new([ti, tn, bn]));
     }
 
+    // Recompute normals to properly average at shared vertices
+    mesh.recompute_normals();
     mesh
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::geometry::mesh_utils::{is_closed, is_manifold};
+    use nalgebra::Vector3;
+
+    #[test]
+    fn test_cube_generation() {
+        let mesh = generate_cube_mesh(Vector3::new(10.0, 10.0, 10.0), false);
+        assert!(mesh.vertex_count() > 0);
+        assert!(mesh.triangle_count() > 0);
+        assert!(is_manifold(&mesh));
+        // Note: cube generation creates duplicate vertices per face, so it's not closed
+        // This is expected behavior - each face has its own vertices for proper normals
+    }
+
+    #[test]
+    fn test_cylinder_is_manifold() {
+        let mesh = generate_cylinder_mesh(10.0, 5.0, 32);
+        assert!(is_manifold(&mesh), "Cylinder mesh should be manifold");
+        assert!(is_closed(&mesh), "Cylinder mesh should be closed");
+        assert!(mesh.vertex_count() > 0);
+        assert!(mesh.triangle_count() > 0);
+    }
+
+    #[test]
+    fn test_cone_is_manifold() {
+        let mesh = generate_cone_mesh(10.0, 5.0, 3.0, 32);
+        assert!(is_manifold(&mesh), "Cone mesh should be manifold");
+        assert!(is_closed(&mesh), "Cone mesh should be closed");
+        assert!(mesh.vertex_count() > 0);
+        assert!(mesh.triangle_count() > 0);
+    }
+
+    #[test]
+    fn test_cylinder_vertex_reuse() {
+        // Verify that vertices are reused (no duplicates at same position)
+        let mesh = generate_cylinder_mesh(10.0, 5.0, 16);
+        
+        // Check that side vertices are shared between adjacent triangles
+        // A properly generated cylinder should have exactly:
+        // - 2 center vertices (top and bottom)
+        // - segments * 2 rim vertices (top and bottom rims)
+        // Total: 2 + (segments * 2) = 2 + 32 = 34 vertices for 16 segments
+        let expected_vertices = 2 + (16 * 2);
+        assert_eq!(mesh.vertex_count(), expected_vertices, 
+            "Cylinder should have exactly {} vertices (2 centers + {} rim vertices)", 
+            expected_vertices, 16 * 2);
+    }
 }

@@ -93,7 +93,7 @@ jobs:
 
       - name: Run integration tests
         run: |
-          ./target/release/polyframe eval examples/ --out evaluation/results
+          ./target/release/polyframe eval examples/ --out tests/evaluation/results
 
   build-release:
     name: Build Release - ${{ matrix.target }}
